@@ -5,10 +5,9 @@
     left: 50%;
     transform: translate(-50%, -50%);
     
-    /* 响应式尺寸：适配手机到电脑 */
-    width: 95vw;          
-    max-width: 760px;     
-    height: 85dvh;        /* 适配 Safari 地址栏 */
+    /* 默认桌面端样式 */
+    width: 760px;
+    height: 85vh;
     max-height: 900px;
     
     background: #1a1a1a;
@@ -47,7 +46,7 @@
     overflow-x: hidden;
     padding: 0;
     background-color: #1a1a1a;
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: touch; /* iOS 丝滑滚动 */
 }
 
 #cte-content-area::-webkit-scrollbar { width: 6px; display: block; }
@@ -79,7 +78,7 @@
 .cte-popup::-webkit-scrollbar { width: 4px; }
 .cte-popup::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
 
-/* --- 基础样式 --- */
+/* --- 基础内容样式 --- */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap');
 
 .cte-wrapper {
@@ -102,12 +101,11 @@
     font-style: italic;
     color: #888;
     border-bottom: 1px solid #444;
-    padding-bottom: 15px;
+    padding-bottom: 10px;
     width: 100%;
     margin-bottom: 15px;
 }
 
-/* 控制栏 */
 .controls-bar {
     background: #242424;
     border: 1px solid #b38b59;
@@ -147,7 +145,7 @@
 .map-container {
     position: relative;
     width: 100%;
-    max-width: 700px;
+    max-width: 700px; /* 限制最大宽度 */
     aspect-ratio: 1 / 1; /* 保持正方形 */
     height: auto; 
     
@@ -160,11 +158,10 @@
     box-shadow: 0 0 30px rgba(0,0,0,0.7);
     overflow: hidden;
     flex-shrink: 0; 
-    margin-bottom: 50px; 
+    margin-bottom: 50px; /* 底部留白 */
     touch-action: none;
 }
 
-/* 坐标点 */
 .location {
     position: absolute;
     cursor: grab;
@@ -212,42 +209,55 @@
 #PrivateClub { color: #ce93d8; } #TVstation { color: #80cbc4; } #airport { color: #b0bec5; } #port { color: #a5d6a7; }
 #other-places { color: #ffe0b2; }
 
-/* --- iPhone / 小屏幕手机专用优化 --- */
-@media screen and (max-width: 600px) {
-    /* 缩小地图上的标签，防止在小屏幕上过于拥挤 */
+/* --- 移动端 & 平板端 深度适配 (iPad/iPhone) --- */
+/* 范围扩大到 1180px，覆盖大部分 iPad 和横屏手机 */
+@media screen and (max-width: 1180px) {
+    #cte-map-panel {
+        width: 95vw;          /* 占满屏幕宽度 */
+        height: 90dvh;        /* 动态视口高度，防止 Safari 地址栏遮挡 */
+        max-height: none;     /* 取消最大高度限制，由 dvh 控制 */
+        
+        /* 确保居中 */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    /* 让地图容器自适应，不要强制 700px */
+    .map-container {
+        width: 100%; 
+        max-width: 100%; /* 允许填满面板宽度 */
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
+
+    /* 缩小地图上的标签，防止重叠 */
     .location {
-        padding: 2px 6px;
+        padding: 3px 6px;
         border-width: 1px;
     }
     .location .label {
-        font-size: 10px; /* 字体更小 */
+        font-size: 11px;
     }
 
-    /* 调整控制栏布局紧凑 */
     .controls-bar {
+        width: 100%;
+        max-width: 100%;
         padding: 5px;
         gap: 5px;
     }
+    
     .cte-btn {
         padding: 4px 8px;
         font-size: 12px;
     }
 
-    /* 调整弹窗内边距，让内容显示更多 */
     .cte-popup {
+        width: 90%;
         padding: 15px;
-        width: 90%; /* 弹窗更宽 */
     }
+    
     .cte-popup h3 {
         font-size: 16px;
-    }
-    .cte-popup p {
-        font-size: 13px;
-    }
-
-    /* 楼层导航按钮更紧凑 */
-    .floor-btn {
-        padding: 3px 6px;
-        font-size: 10px;
     }
 }
