@@ -1,10 +1,9 @@
-// 扩展路径，请确保文件夹名称为 CTE_Map
 const extensionName = "CTE_Map";
 const extensionPath = `scripts/extensions/third-party/${extensionName}`;
 
 let stContext = null;
 
-// 定义全局命名空间对象
+// 定义全局命名空间
 window.CTEMap = {
     currentDestination: '',
     roomDetails: {
@@ -43,7 +42,6 @@ window.CTEMap = {
     }
 };
 
-// 1. 初始化等待
 const initInterval = setInterval(() => {
     if (window.SillyTavern && window.SillyTavern.getContext && window.jQuery) {
         clearInterval(initInterval);
@@ -55,13 +53,16 @@ const initInterval = setInterval(() => {
 async function initializeExtension() {
     console.log("[CTE Map] Initializing...");
 
-    // 2. 加载样式
+    // 清理可能存在的旧元素，防止重复加载导致的ID冲突
+    $('#cte-map-panel').remove();
+    $('#cte-toggle-btn').remove();
+    $('link[href*="CTE_Map/style.css"]').remove();
+
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = `${extensionPath}/style.css`;
     document.head.appendChild(link);
 
-    // 3. 注入 HTML 骨架
     const panelHTML = `
         <div id="cte-toggle-btn" title="打开 CTE 地图" 
              style="position:fixed; top:130px; left:10px; z-index:9000; width:40px; height:40px; background:#b38b59; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); color:#fff; font-size:20px;">
@@ -72,12 +73,12 @@ async function initializeExtension() {
                 <span>CTE 档案地图</span>
                 <span id="cte-close-btn">❌</span>
             </div>
+            <!-- 注意这里的 id，对应 css 中的 content-area -->
             <div id="cte-content-area">Loading Map...</div>
         </div>
     `;
     $('body').append(panelHTML);
 
-    // 4. 获取 map.html 内容
     try {
         const response = await fetch(`${extensionPath}/map.html`);
         if (!response.ok) throw new Error("Map file not found");
@@ -90,14 +91,13 @@ async function initializeExtension() {
 
     } catch (e) {
         console.error("[CTE Map] Error:", e);
-        $('#cte-content-area').html(`<p style="padding:20px; color:white;">无法加载地图文件。<br>请确认文件夹名为 <b>CTE_Map</b> 且位于 extensions/third-party 目录下。</p>`);
+        $('#cte-content-area').html(`<p style="padding:20px; color:white;">无法加载地图文件 (map.html)。<br>请检查控制台获取详细错误。</p>`);
     }
 
-    // 绑定面板开关
-    $('#cte-toggle-btn').on('click', () => $('#cte-map-panel').fadeIn());
+    // 使用 fadeToggle 更方便
+    $('#cte-toggle-btn').on('click', () => $('#cte-map-panel').fadeToggle());
     $('#cte-close-btn').on('click', () => $('#cte-map-panel').fadeOut());
 
-    // 启用拖拽 (SillyTavern 自带 jQuery UI)
     if ($.fn.draggable) {
         $('#cte-map-panel').draggable({ 
             handle: '#cte-drag-handle',
@@ -106,7 +106,6 @@ async function initializeExtension() {
     }
 }
 
-// 核心功能绑定
 function bindMapEvents() {
     const mapContainer = document.getElementById('cte-map-container');
     if (!mapContainer) return;
@@ -120,6 +119,7 @@ function bindMapEvents() {
 
         elm.onmousedown = function(e) {
             e.preventDefault();
+            e.stopPropagation(); // 阻止事件冒泡
             isDragging = true;
             hasMoved = false;
             elm.classList.add('dragging');
@@ -162,7 +162,6 @@ function bindMapEvents() {
     });
 }
 
-// 数据存储
 function savePosition(id, left, top) {
     let data = localStorage.getItem('cte_map_positions');
     data = data ? JSON.parse(data) : {};
@@ -189,7 +188,6 @@ function loadSavedBg() {
     }
 }
 
-// 挂载函数
 window.CTEMap.changeBackground = function(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -204,18 +202,21 @@ window.CTEMap.changeBackground = function(input) {
 window.CTEMap.showPopup = function(id) {
     if (id === 'dorm-detail-popup') window.CTEMap.closeAllPopups();
     
-    // 强制只查找 CTE 面板内的元素
+    // 使用 querySelector 限制在 panel 内部查找，避免找到错误的元素
     const popup = document.querySelector(`#cte-map-panel #${id}`);
-    const overlay = document.querySelector('#cte-map-panel #cte-overlay');
+    const overlay = document.querySelector(`#cte-map-panel #cte-overlay`);
     
     if (popup) {
-        if(overlay) overlay.style.display = 'block';
+        if (overlay) overlay.style.display = 'block';
         popup.style.display = 'block';
+        // 修正：打开弹窗时，让弹窗内部回滚到顶部
+        popup.scrollTop = 0;
     }
 };
 
 window.CTEMap.closeAllPopups = function() {
-    $('#cte-overlay').hide();
+    // 隐藏遮罩和所有弹窗
+    $('#cte-map-panel #cte-overlay').hide();
     $('#cte-map-panel .cte-popup').hide();
     window.CTEMap.closeSubMenu();
     window.CTEMap.closeTravelMenu();
@@ -267,12 +268,9 @@ window.CTEMap.confirmTravel = function(isAlone) {
         text = `{{user}} 邀请 ${name} 一起前往${dest}。`;
     }
     
-    // 执行指令
     if (stContext) {
-        // 使用 /setinput 填入输入框，或者改为 /send 直接发送
         stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
         window.CTEMap.closeAllPopups();
-        // $('#cte-map-panel').fadeOut(); // 可选：前往后自动关闭地图
     }
 };
 
