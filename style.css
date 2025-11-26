@@ -1,13 +1,16 @@
 /* --- 扩展面板容器 --- */
 #cte-map-panel {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     
-    /* 默认桌面端样式 */
-    width: 760px;
-    height: 85vh;
+    /* [核心修复] 弃用 transform 居中，改用 inset + margin auto */
+    /* 这种方式能保证面板永远不会超出屏幕边界 */
+    top: 0; left: 0; right: 0; bottom: 0;
+    margin: auto;
+    
+    /* 尺寸控制 */
+    width: 95vw;          
+    max-width: 760px;     
+    height: 85dvh;        /* 使用 dvh 动态适配 Safari 地址栏 */
     max-height: 900px;
     
     background: #1a1a1a;
@@ -23,7 +26,7 @@
 /* 顶部标题栏 */
 #cte-drag-handle {
     width: 100%;
-    height: 40px;
+    height: 44px; /* 加高一点，符合 iOS 触控标准 */
     background: #242424;
     cursor: default;
     display: flex;
@@ -39,14 +42,17 @@
 
 /* 内容区域 */
 #cte-content-area {
-    height: calc(100% - 40px);
+    height: calc(100% - 44px);
     width: 100%;
     position: static; 
     overflow-y: auto; 
     overflow-x: hidden;
     padding: 0;
     background-color: #1a1a1a;
-    -webkit-overflow-scrolling: touch; /* iOS 丝滑滚动 */
+    -webkit-overflow-scrolling: touch; /* iOS 惯性滚动 */
+    
+    /* [优化] 底部增加安全距离，防止被 iPad 底部黑条遮挡 */
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 #cte-content-area::-webkit-scrollbar { width: 6px; display: block; }
@@ -57,13 +63,14 @@
 .cte-popup {
     display: none;
     position: absolute; 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     
+    /* 弹窗也改用 inset 居中，防止定位跑偏 */
+    top: 0; left: 0; right: 0; bottom: 0;
+    margin: auto;
     width: 85%;
     max-width: 500px;
-    max-height: 70vh;
+    height: fit-content; /* 高度自适应内容 */
+    max-height: 70vh;    /* 但不超过 70% */
     
     overflow-y: auto; 
     background-color: #242424;
@@ -78,7 +85,7 @@
 .cte-popup::-webkit-scrollbar { width: 4px; }
 .cte-popup::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
 
-/* --- 基础内容样式 --- */
+/* --- 基础样式 --- */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap');
 
 .cte-wrapper {
@@ -101,11 +108,12 @@
     font-style: italic;
     color: #888;
     border-bottom: 1px solid #444;
-    padding-bottom: 10px;
+    padding-bottom: 15px;
     width: 100%;
     margin-bottom: 15px;
 }
 
+/* 控制栏 */
 .controls-bar {
     background: #242424;
     border: 1px solid #b38b59;
@@ -127,14 +135,14 @@
     border: 1px solid #b38b59;
     color: #e0c5a1;
     background-color: transparent;
-    padding: 6px 12px;
+    padding: 8px 16px; /* 增大触控区域 */
     border-radius: 2px;
     cursor: pointer;
     font-family: 'Noto Serif SC', serif;
     transition: all 0.3s;
     text-align: center;
     display: inline-block;
-    font-size: 13px;
+    font-size: 14px;
 }
 .cte-btn:hover { background-color: #b38b59; color: #1a1a1a; }
 
@@ -145,8 +153,8 @@
 .map-container {
     position: relative;
     width: 100%;
-    max-width: 700px; /* 限制最大宽度 */
-    aspect-ratio: 1 / 1; /* 保持正方形 */
+    max-width: 700px;
+    aspect-ratio: 1 / 1; 
     height: auto; 
     
     background-color: #242424;
@@ -158,10 +166,11 @@
     box-shadow: 0 0 30px rgba(0,0,0,0.7);
     overflow: hidden;
     flex-shrink: 0; 
-    margin-bottom: 50px; /* 底部留白 */
+    margin-bottom: 50px; 
     touch-action: none;
 }
 
+/* 坐标点 */
 .location {
     position: absolute;
     cursor: grab;
@@ -170,7 +179,7 @@
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.85);
     border: 1px solid #b38b59;
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-radius: 4px;
     display: flex;
     justify-content: center;
@@ -193,11 +202,11 @@
 .interior-container { position: relative; width: 100%; margin-top: 15px; border: 1px solid #444; }
 .interior-image { width: 100%; height: auto; display: block; }
 .floor-nav { position: absolute; top: 50%; left: 5px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; z-index: 10; }
-.floor-btn { background-color: rgba(0,0,0,0.85); border: 1px solid #b38b59; color: #e0c5a1; padding: 4px 8px; cursor: pointer; text-align: left; font-size: 11px; }
+.floor-btn { background-color: rgba(0,0,0,0.85); border: 1px solid #b38b59; color: #e0c5a1; padding: 6px 10px; cursor: pointer; text-align: left; font-size: 12px; }
 
 .sub-menu-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20; flex-direction: column; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; text-align: center; }
 .sub-menu-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; max-height: 80%; overflow-y: auto; }
-.sub-item-btn { background: transparent; border: 1px solid #666; color: #dcdcdc; padding: 6px; cursor: pointer; font-size: 12px; }
+.sub-item-btn { background: transparent; border: 1px solid #666; color: #dcdcdc; padding: 8px; cursor: pointer; font-size: 12px; }
 
 #travel-menu-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20005; justify-content: center; align-items: center; }
 .travel-menu-box { position: relative; background: #242424; border: 1px solid #b38b59; padding: 20px; width: 85%; max-width: 300px; text-align: center; }
@@ -209,55 +218,39 @@
 #PrivateClub { color: #ce93d8; } #TVstation { color: #80cbc4; } #airport { color: #b0bec5; } #port { color: #a5d6a7; }
 #other-places { color: #ffe0b2; }
 
-/* --- 移动端 & 平板端 深度适配 (iPad/iPhone) --- */
-/* 范围扩大到 1180px，覆盖大部分 iPad 和横屏手机 */
+/* --- 移动端 & 平板端 深度适配 --- */
 @media screen and (max-width: 1180px) {
     #cte-map-panel {
-        width: 95vw;          /* 占满屏幕宽度 */
-        height: 90dvh;        /* 动态视口高度，防止 Safari 地址栏遮挡 */
-        max-height: none;     /* 取消最大高度限制，由 dvh 控制 */
+        width: 95vw;
+        height: 90dvh;
+        max-height: none;
         
-        /* 确保居中 */
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        /* 强制使用 inset 居中逻辑，覆盖任何可能干扰的样式 */
+        top: 0; left: 0; right: 0; bottom: 0;
+        margin: auto;
     }
     
-    /* 让地图容器自适应，不要强制 700px */
     .map-container {
         width: 100%; 
-        max-width: 100%; /* 允许填满面板宽度 */
-        height: auto;
+        max-width: 100%;
         aspect-ratio: 1 / 1;
     }
 
-    /* 缩小地图上的标签，防止重叠 */
     .location {
-        padding: 3px 6px;
+        padding: 4px 8px;
         border-width: 1px;
     }
     .location .label {
         font-size: 11px;
     }
 
-    .controls-bar {
-        width: 100%;
-        max-width: 100%;
-        padding: 5px;
-        gap: 5px;
-    }
-    
     .cte-btn {
-        padding: 4px 8px;
+        padding: 6px 10px;
         font-size: 12px;
     }
 
     .cte-popup {
         width: 90%;
         padding: 15px;
-    }
-    
-    .cte-popup h3 {
-        font-size: 16px;
     }
 }
