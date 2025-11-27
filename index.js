@@ -50,9 +50,76 @@ const initInterval = setInterval(() => {
     }
 }, 500);
 
+/**
+ * [修复] 动态计算并设置面板位置
+ * 解决手机端因浏览器地址栏/工具栏导致的界面上浮问题
+ */
+function fixPanelPosition() {
+    const panel = document.getElementById('cte-map-panel');
+    if (!panel) return;
+
+    // 获取真实可视区域尺寸
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // 获取面板尺寸
+    const panelRect = panel.getBoundingClientRect();
+    const panelHeight = panelRect.height || panel.offsetHeight;
+    const panelWidth = panelRect.width || panel.offsetWidth;
+
+    // 判断是否为移动端（宽度小于 768px）
+    const isMobile = viewportWidth < 768;
+
+    if (isMobile) {
+        // 移动端：使用 fixed 定位，基于真实 viewport 计算
+        // 清除 CSS 中的 transform 居中，改用直接定位
+        panel.style.position = 'fixed';
+        panel.style.transform = 'none';
+        panel.style.top = Math.max(10, (viewportHeight - panelHeight) / 2) + 'px';
+        panel.style.left = Math.max(5, (viewportWidth - panelWidth) / 2) + 'px';
+        
+        // 确保面板不会超出屏幕顶部
+        if (parseFloat(panel.style.top) < 10) {
+            panel.style.top = '10px';
+        }
+        
+        // 移动端限制最大高度，防止超出可视区域
+        panel.style.maxHeight = (viewportHeight - 20) + 'px';
+    } else {
+        // 桌面端：恢复原版 CSS 居中效果
+        panel.style.position = 'fixed';
+        panel.style.top = '50%';
+        panel.style.left = '50%';
+        panel.style.transform = 'translate(-50%, -50%)';
+        panel.style.maxHeight = '85vh';
+    }
+}
+
+/**
+ * [新增] 监听窗口变化，实时调整面板位置
+ */
+function setupResizeListener() {
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const panel = document.getElementById('cte-map-panel');
+            if (panel && panel.style.display !== 'none') {
+                fixPanelPosition();
+            }
+        }, 100);
+    });
+
+    // 针对移动端浏览器地址栏显示/隐藏的特殊处理
+    window.addEventListener('orientationchange', () => {
+        setTimeout(fixPanelPosition, 300);
+    });
+}
+
 async function initializeExtension() {
     console.log("[CTE Map] Initializing...");
 
+    // 清理可能存在的旧元素，防止重复加载导致的ID冲突
     $('#cte-map-panel').remove();
     $('#cte-toggle-btn').remove();
     $('link[href*="CTE_Map/style.css"]').remove();
@@ -70,7 +137,9 @@ async function initializeExtension() {
         <div id="cte-map-panel">
             <div id="cte-drag-handle">
                 <span>CTE 档案地图</span>
+                <span id="cte-close-btn">❌</span>
             </div>
+            <!-- 注意这里的 id，对应 css 中的 content-area -->
             <div id="cte-content-area">Loading Map...</div>
         </div>
     `;
@@ -91,7 +160,30 @@ async function initializeExtension() {
         $('#cte-content-area').html(`<p style="padding:20px; color:white;">无法加载地图文件 (map.html)。<br>请检查控制台获取详细错误。</p>`);
     }
 
-    $('#cte-toggle-btn').on('click', () => $('#cte-map-panel').fadeToggle());
+    // [修复] 打开面板时调用 fixPanelPosition
+    $('#cte-toggle-btn').on('click', () => {
+        const panel = $('#cte-map-panel');
+        if (panel.is(':visible')) {
+            panel.fadeOut();
+        } else {
+            panel.fadeIn(200, function() {
+                // 面板显示后立即修正位置
+                fixPanelPosition();
+            });
+        }
+    });
+    
+    $('#cte-close-btn').on('click', () => $('#cte-map-panel').fadeOut());
+
+    if ($.fn.draggable) {
+        $('#cte-map-panel').draggable({ 
+            handle: '#cte-drag-handle',
+            containment: 'window'
+        });
+    }
+
+    // [新增] 设置窗口变化监听
+    setupResizeListener();
 }
 
 function bindMapEvents() {
@@ -105,83 +197,48 @@ function bindMapEvents() {
         let startX, startY, initialLeft, initialTop;
         let hasMoved = false;
 
-        const startDrag = (e) => {
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-            if (e.type === 'touchstart') {
-                // 不阻止默认可能导致拖拽时整个页面滚动
-            } else {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
+        elm.onmousedown = function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // 阻止事件冒泡
             isDragging = true;
             hasMoved = false;
             elm.classList.add('dragging');
             
-            startX = clientX;
-            startY = clientY;
+            startX = e.clientX;
+            startY = e.clientY;
             initialLeft = elm.offsetLeft;
             initialTop = elm.offsetTop;
-        };
 
-        const doDrag = (e) => {
-            if (!isDragging) return;
-            e.preventDefault(); // 阻止屏幕滚动
+            document.onmousemove = function(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
 
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                
+                newLeft = Math.max(0, Math.min(newLeft, mapContainer.offsetWidth));
+                newTop = Math.max(0, Math.min(newTop, mapContainer.offsetHeight));
 
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-            
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
-
-            let newLeft = initialLeft + dx;
-            let newTop = initialTop + dy;
-            
-            newLeft = Math.max(0, Math.min(newLeft, mapContainer.offsetWidth));
-            newTop = Math.max(0, Math.min(newTop, mapContainer.offsetHeight));
-
-            elm.style.left = newLeft + 'px';
-            elm.style.top = newTop + 'px';
-        };
-
-        const stopDrag = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            elm.classList.remove('dragging');
-
-            if (!hasMoved) {
-                const popupId = elm.getAttribute('data-popup');
-                if (popupId) window.CTEMap.showPopup(popupId);
-            } else {
-                savePosition(elm.id, elm.style.left, elm.style.top);
-            }
-        };
-
-        elm.addEventListener('mousedown', (e) => {
-            startDrag(e);
-            document.addEventListener('mousemove', doDrag);
-            document.addEventListener('mouseup', () => {
-                stopDrag();
-                document.removeEventListener('mousemove', doDrag);
-            }, { once: true });
-        });
-
-        elm.addEventListener('touchstart', (e) => {
-            startDrag(e);
-            const touchMoveHandler = (ev) => doDrag(ev);
-            const touchEndHandler = () => {
-                stopDrag();
-                document.removeEventListener('touchmove', touchMoveHandler);
-                document.removeEventListener('touchend', touchEndHandler);
+                elm.style.left = newLeft + 'px';
+                elm.style.top = newTop + 'px';
             };
-            
-            document.addEventListener('touchmove', touchMoveHandler, { passive: false });
-            document.addEventListener('touchend', touchEndHandler);
-        }, { passive: false });
+
+            document.onmouseup = function() {
+                isDragging = false;
+                elm.classList.remove('dragging');
+                document.onmousemove = null;
+                document.onmouseup = null;
+
+                if (!hasMoved) {
+                    const popupId = elm.getAttribute('data-popup');
+                    if (popupId) window.CTEMap.showPopup(popupId);
+                } else {
+                    savePosition(elm.id, elm.style.left, elm.style.top);
+                }
+            };
+        };
     });
 }
 
@@ -225,17 +282,20 @@ window.CTEMap.changeBackground = function(input) {
 window.CTEMap.showPopup = function(id) {
     if (id === 'dorm-detail-popup') window.CTEMap.closeAllPopups();
     
+    // 使用 querySelector 限制在 panel 内部查找，避免找到错误的元素
     const popup = document.querySelector(`#cte-map-panel #${id}`);
     const overlay = document.querySelector(`#cte-map-panel #cte-overlay`);
     
     if (popup) {
         if (overlay) overlay.style.display = 'block';
         popup.style.display = 'block';
+        // 修正：打开弹窗时，让弹窗内部回滚到顶部
         popup.scrollTop = 0;
     }
 };
 
 window.CTEMap.closeAllPopups = function() {
+    // 隐藏遮罩和所有弹窗
     $('#cte-map-panel #cte-overlay').hide();
     $('#cte-map-panel .cte-popup').hide();
     window.CTEMap.closeSubMenu();
