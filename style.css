@@ -27,7 +27,7 @@
     background: #242424;
     cursor: default;
     display: flex;
-    justify-content: center;
+    justify-content: space-between; /* 改为两端对齐 */
     align-items: center;
     border-bottom: 1px solid #b38b59;
     color: #e0c5a1;
@@ -35,23 +35,63 @@
     flex-shrink: 0;
     position: relative;
     z-index: 20003; 
+    padding: 0 15px; /* 增加内边距 */
+    box-sizing: border-box;
+}
+
+/* 顶部导航按钮组 */
+.cte-nav-group {
+    display: flex;
+    gap: 10px;
+}
+
+.cte-nav-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    padding: 4px 8px;
+    transition: all 0.3s;
+}
+
+.cte-nav-btn.active {
+    color: #e0c5a1;
+    border-bottom: 2px solid #b38b59;
+}
+
+.cte-nav-btn:hover {
+    color: #e0c5a1;
 }
 
 /* 内容区域 */
 #cte-content-area {
     height: calc(100% - 40px);
     width: 100%;
-    position: static; 
-    overflow-y: auto; 
-    overflow-x: hidden;
-    padding: 0;
+    position: relative; /* 改为 relative 以便绝对定位子视图 */
+    overflow: hidden; /* 隐藏溢出，由子视图处理滚动 */
     background-color: #1a1a1a;
-    -webkit-overflow-scrolling: touch; /* iOS 丝滑滚动 */
 }
 
-#cte-content-area::-webkit-scrollbar { width: 6px; display: block; }
-#cte-content-area::-webkit-scrollbar-track { background: #1a1a1a; }
-#cte-content-area::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+/* 视图容器 (地图/行程表) */
+.cte-view {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    display: none; /* 默认隐藏 */
+    -webkit-overflow-scrolling: touch;
+}
+
+.cte-view.active {
+    display: block;
+}
+
+.cte-view::-webkit-scrollbar { width: 6px; display: block; }
+.cte-view::-webkit-scrollbar-track { background: #1a1a1a; }
+.cte-view::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
 /* --- 弹窗样式 --- */
 .cte-popup {
@@ -88,6 +128,7 @@
     align-items: center;
     padding: 10px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .cte-wrapper h1, .cte-wrapper h2 {
@@ -138,29 +179,135 @@
 }
 .cte-btn:hover { background-color: #b38b59; color: #1a1a1a; }
 
-.file-input-wrapper { 
-    position: relative; 
-    overflow: hidden; 
-    display: inline-block; 
-    cursor: pointer;
-}
-.file-input-wrapper input[type=file] { 
-    position: absolute; 
-    left: 0; 
-    top: 0; 
+/* ========================================== */
+/* === 行程表样式 (Timeline) === */
+/* ========================================== */
+
+.cte-timeline-container {
     width: 100%;
-    height: 100%;
-    opacity: 0; 
-    cursor: pointer; 
-    z-index: 10;
+    max-width: 700px;
+    padding: 10px 20px;
+    box-sizing: border-box;
 }
 
-/* 地图容器 */
+.cte-timeline-item {
+    display: flex;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-left: 60px; /* 留出时间标签的位置 */
+}
+
+.cte-timeline-item:last-child {
+    margin-bottom: 4rem; /* 底部留白 */
+}
+
+/* 连接线 */
+.cte-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 19px; /* 线的位置 */
+    top: 5px;
+    bottom: -35px; /* 连接到下一个 */
+    width: 2px;
+    background-color: #444; /* 深灰色线条 */
+    border-left: 1px dashed #b38b59; /* 金色虚线装饰 */
+}
+
+.cte-timeline-item:last-child::before {
+    display: none;
+}
+
+/* 时间标签 */
+.cte-timeline-time {
+    position: absolute;
+    left: -10px;
+    top: 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    color: #b38b59; /* 金色文字 */
+    background: #1a1a1a;
+    padding: 2px 5px;
+    border: 1px solid #b38b59;
+    border-radius: 2px;
+    font-size: 14px;
+    width: 60px;
+    text-align: center;
+    z-index: 2;
+}
+
+/* 内容卡片 */
+.cte-timeline-content {
+    background: rgba(36, 36, 36, 0.8);
+    border: 1px solid #444;
+    border-left: 3px solid #b38b59; /* 左侧金色强调 */
+    border-radius: 4px;
+    padding: 15px;
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.cte-timeline-content:hover {
+    transform: translateX(5px);
+    box-shadow: 0 0 15px rgba(179, 139, 89, 0.15);
+    border-color: #666;
+}
+
+.cte-schedule-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0c5a1;
+    margin: 0 0 8px 0;
+    font-family: 'Noto Serif SC', serif;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cte-schedule-desc {
+    color: #a4a6a8;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.cte-tag {
+    display: inline-block;
+    background-color: rgba(179, 139, 89, 0.2);
+    color: #b38b59;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 11px;
+    margin-left: 8px;
+    border: 1px solid #b38b59;
+}
+
+/* 执行按钮 */
+.cte-exec-btn {
+    width: 100%;
+    padding: 5px;
+    font-size: 12px;
+    border-top: 1px solid #444;
+    margin-top: 5px;
+    background: rgba(0,0,0,0.2);
+    color: #888;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+}
+
+.cte-exec-btn:hover {
+    background: #b38b59;
+    color: #1a1a1a;
+}
+
+
+/* 地图容器 (保持原有样式) */
 .map-container {
     position: relative;
     width: 100%;
-    max-width: 700px; /* 限制最大宽度 */
-    aspect-ratio: 1 / 1; /* 保持正方形 */
+    max-width: 700px;
+    aspect-ratio: 1 / 1;
     height: auto; 
     
     background-color: #242424;
@@ -172,7 +319,7 @@
     box-shadow: 0 0 30px rgba(0,0,0,0.7);
     overflow: hidden;
     flex-shrink: 0; 
-    margin-bottom: 50px; /* 底部留白 */
+    margin-bottom: 50px;
     touch-action: none;
 }
 
@@ -394,7 +541,7 @@
     cursor: pointer;
 }
 
-.avatar-upload-btn input[type="file"] {
+.avatar-upload-btn input[type=file] {
     position: absolute;
     left: 0;
     top: 0;
