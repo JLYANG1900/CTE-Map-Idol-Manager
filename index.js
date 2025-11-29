@@ -448,7 +448,7 @@ window.CTEMap.renderSchedule = function(items) {
 
 // [新增] 执行行程
 window.CTEMap.executeScheduleItem = function(itemText) {
-    const text = `{{user}} 开始执行行程：${itemText}`;
+    const text = `时间跳跃，推进剧情至：${itemText}`;
     
     if (stContext) {
         stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
@@ -926,3 +926,4 @@ window.CTEMap.openRooftopMenu = function() {
         </div>
     `;
 };
+
