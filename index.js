@@ -492,7 +492,7 @@ window.CTEMap.openParticipantSelection = function(itemText) {
     $('#cte-participant-popup').show();
 };
 
-// [新增] 收集参与人员，并跳转到地图界面选择地点
+// [修改] 收集参与人员，并跳转到地图界面选择地点
 window.CTEMap.proceedToLocationSelection = function() {
     // 获取勾选的角色
     const selected = [];
@@ -511,18 +511,16 @@ window.CTEMap.proceedToLocationSelection = function() {
         return;
     }
 
+    // [关键修改] 先关闭弹窗，再设置状态
+    // 如果先设置状态再关闭弹窗，closeAllPopups -> closeTravelMenu 会把 isSelectingForSchedule 重置为 false
+    window.CTEMap.closeAllPopups();
+
     // 保存状态
     window.CTEMap.tempScheduleParticipants = selected;
     window.CTEMap.isSelectingForSchedule = true; // 标记为行程选择模式
 
-    // 关闭弹窗
-    window.CTEMap.closeAllPopups();
-
     // 切换到地图视图
     window.CTEMap.switchView('map');
-
-    // 提示用户 (可选)
-    // alert("请在地图上选择要前往的地点。"); 
 };
 
 // [修改] 打开 Travel Menu，根据模式显示不同内容
@@ -599,16 +597,13 @@ window.CTEMap.finalizeScheduleExecution = function() {
     
     let npcText = '';
     const npcInput = document.getElementById('npc-input');
-    // 注意：这里需要重新判断 toggleNPC 的状态，因为 DOM 刚刚被重新渲染了
-    // 简单起见，我们信任用户当前在界面上的输入。
-    // 如果 NPC 输入框可见，且有值，则认为触发了 NPC
+    // 注意：这里需要重新判断 toggleNPC 的状态
     if (npcInput && npcInput.style.display !== 'none') {
          const val = npcInput.value.trim();
          if (val) npcText = `，遇见了${val}`;
     }
 
     // 构造指令文本
-    // 格式：[参与者] 前往 [地点] 执行行程：[内容]，[NPC]。
     const text = `${participants} 前往${destination}执行行程：${scheduleItem}${npcText}。`;
 
     if (stContext) {
@@ -631,10 +626,8 @@ window.CTEMap.toggleNPC = function(enable, defaultText) {
 
     if (enable) {
         input.style.display = 'block';
-        // 只有当输入框为空且有默认值时才填充，避免覆盖用户已修改的内容
         if (defaultText && !input.value) input.value = defaultText;
         
-        // 更新按钮样式
         btnYes.style.background = '#b38b59';
         btnYes.style.color = '#1a1a1a';
         btnYes.style.borderColor = '#b38b59';
@@ -645,7 +638,6 @@ window.CTEMap.toggleNPC = function(enable, defaultText) {
     } else {
         input.style.display = 'none';
         
-        // 更新按钮样式
         btnNo.style.background = '#b38b59';
         btnNo.style.color = '#1a1a1a';
         btnNo.style.borderColor = '#b38b59';
@@ -708,12 +700,14 @@ window.CTEMap.showActivityMenu = function() {
     `);
 };
 
-window.CTEMap.closeTravelMenu = function() {
+// [修改] 关闭 Travel Menu (支持防止重置状态)
+window.CTEMap.closeTravelMenu = function(shouldReset = true) {
     $('#travel-menu-overlay').hide();
     
-    // 如果是在行程选择模式下取消了，是否需要重置模式？
-    // 通常取消意味着用户不想继续这个流程了，所以重置比较合理。
-    if (window.CTEMap.isSelectingForSchedule) {
+    // 默认情况下 (取消操作) 会重置模式
+    // 但如果只是为了切换UI (例如 closeAllPopups 清理画面但马上要显示其他内容)
+    // 我们可以传入 false 来防止重置
+    if (shouldReset && window.CTEMap.isSelectingForSchedule) {
         window.CTEMap.isSelectingForSchedule = false;
         window.CTEMap.tempScheduleParticipants = [];
     }
@@ -1058,10 +1052,18 @@ window.CTEMap.showPopup = function(id) {
     }
 };
 
+// [修改] 关闭所有弹窗
+// 优化：如果 Travel Menu 当前是可见的，我们才认为这是在重置模式
+// 如果只是关闭一个详情弹窗 (Travel Menu 不可见)，则不重置
 window.CTEMap.closeAllPopups = function() {
-    // 隐藏遮罩和所有弹窗
+    // 检测在关闭前，Travel Menu 是否是打开的
+    const isTravelMenuVisible = $('#travel-menu-overlay').is(':visible');
+    
     $('#cte-map-panel #cte-overlay').hide();
     $('#cte-map-panel .cte-popup').hide();
     window.CTEMap.closeSubMenu();
-    window.CTEMap.closeTravelMenu();
+    
+    // 只有当 Travel Menu 可见时，调用 closeTravelMenu 才会触发状态重置
+    // (如果 isTravelMenuVisible 为 false, 则 shouldReset 为 false)
+    window.CTEMap.closeTravelMenu(isTravelMenuVisible);
 };
