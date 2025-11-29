@@ -6,6 +6,7 @@ let stContext = null;
 // 定义全局命名空间
 window.CTEMap = {
     currentDestination: '',
+    currentCompanion: '', // [新增] 用于暂存同伴姓名
     // 角色资料数据
     characterProfiles: {
         '魏月华': {
@@ -414,8 +415,46 @@ window.CTEMap.showCompanionInput = function() {
     $('#travel-menu-overlay .travel-options').html(`
         <p style="color: #888; margin: 0 0 10px 0;">和谁一起去？</p>
         <input type="text" id="companion-name" class="travel-input" placeholder="输入角色姓名">
-        <button class="cte-btn" onclick="window.CTEMap.confirmTravel(false)">🤝 一起前往</button>
+        <!-- [修改] 点击按钮后不再直接确认，而是跳转到活动选择 -->
+        <button class="cte-btn" onclick="window.CTEMap.validateAndShowActivities()">🤝 一起前往</button>
         <button class="cte-btn" style="margin-top: 10px; border-color: #666; color: #888;" onclick="window.CTEMap.openTravelMenu('${window.CTEMap.currentDestination}')">返回</button>
+    `);
+};
+
+// [新增] 验证姓名并显示活动菜单
+window.CTEMap.validateAndShowActivities = function() {
+    const name = $('#companion-name').val();
+    if (!name) return alert("请输入姓名");
+    
+    // 暂存同伴姓名
+    window.CTEMap.currentCompanion = name;
+    
+    // 显示活动选择界面
+    window.CTEMap.showActivityMenu();
+};
+
+// [新增] 显示活动选择菜单
+window.CTEMap.showActivityMenu = function() {
+    const activities = ['训练', '开会', '购物', '闲逛', '吃饭', '喝酒', '约会', '做爱'];
+    
+    // 生成活动按钮网格
+    let buttonsHtml = activities.map(act => 
+        `<button class="cte-btn" style="margin: 3px; min-width: 60px; font-size: 13px;" onclick="window.CTEMap.finalizeTravel('${act}')">${act}</button>`
+    ).join('');
+
+    $('#travel-menu-overlay .travel-options').html(`
+        <p style="color: #e0c5a1; margin: 0 0 10px 0;">去做什么？</p>
+        
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin-bottom:15px; max-height: 200px; overflow-y: auto;">
+            ${buttonsHtml}
+        </div>
+        
+        <div style="border-top: 1px solid #444; padding-top: 10px; width: 100%;">
+            <input type="text" id="custom-activity" class="travel-input" placeholder="自定义活动..." style="margin-bottom: 8px;">
+            <button class="cte-btn" onclick="window.CTEMap.finalizeTravel(null)">🚀 确认出发</button>
+        </div>
+        
+        <button class="cte-btn" style="margin-top: 10px; border-color: #666; color: #888; font-size: 12px; padding: 4px 10px;" onclick="window.CTEMap.showCompanionInput()">返回上一步</button>
     `);
 };
 
@@ -433,17 +472,36 @@ window.CTEMap.goToCustomDestination = function() {
     }
 };
 
+// [修改] 只处理独自前往的逻辑，多人前往逻辑移至 finalizeTravel
 window.CTEMap.confirmTravel = function(isAlone) {
     const dest = window.CTEMap.currentDestination;
     let text = "";
     
     if (isAlone) {
         text = `{{user}} 决定独自前往${dest}。`;
-    } else {
-        const name = $('#companion-name').val();
-        if (!name) return alert("请输入姓名");
-        text = `{{user}} 邀请 ${name} 一起前往${dest}。`;
+        if (stContext) {
+            stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
+            window.CTEMap.closeAllPopups();
+        }
     }
+};
+
+// [新增] 处理双人前往的最终确认逻辑
+window.CTEMap.finalizeTravel = function(activity) {
+    const dest = window.CTEMap.currentDestination;
+    let finalActivity = activity;
+    
+    // 如果没有传入具体活动，说明是自定义输入
+    if (!finalActivity) {
+        finalActivity = $('#custom-activity').val();
+    }
+    
+    if (!finalActivity) return alert("请选择或输入活动内容");
+
+    const name = window.CTEMap.currentCompanion;
+    
+    // 生成最终文本：{{user}} 邀请 [同伴] 一起前往 [地点]，[活动]。
+    const text = `{{user}} 邀请 ${name} 一起前往${dest}，${finalActivity}。`;
     
     if (stContext) {
         stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
