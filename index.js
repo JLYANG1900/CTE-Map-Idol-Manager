@@ -198,9 +198,10 @@ async function initializeExtension() {
     link.href = `${extensionPath}/style.css`;
     document.head.appendChild(link);
 
+    // [修改] 更新了 title 提示和 cursor 样式，表明可拖动
     const panelHTML = `
-        <div id="cte-toggle-btn" title="打开 CTE 地图" 
-             style="position:fixed; top:130px; left:10px; z-index:9000; width:40px; height:40px; background:#b38b59; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); color:#fff; font-size:20px;">
+        <div id="cte-toggle-btn" title="点击打开 / 长按拖动" 
+             style="position:fixed; top:130px; left:10px; z-index:9000; width:40px; height:40px; background:#b38b59; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:move; box-shadow:0 4px 10px rgba(0,0,0,0.3); color:#fff; font-size:20px;">
             🗺️
         </div>
         <div id="cte-map-panel">
@@ -208,7 +209,6 @@ async function initializeExtension() {
                 <span>CTE 档案地图</span>
                 <span id="cte-close-btn">❌</span>
             </div>
-            <!-- 注意这里的 id，对应 css 中的 content-area -->
             <div id="cte-content-area">Loading Map...</div>
         </div>
     `;
@@ -229,8 +229,20 @@ async function initializeExtension() {
         $('#cte-content-area').html(`<p style="padding:20px; color:white;">无法加载地图文件 (map.html)。<br>请检查控制台获取详细错误。</p>`);
     }
 
+    // =================================================
+    // [新增] 悬浮图标拖拽与点击冲突处理逻辑
+    // =================================================
+    let isIconDragging = false;
+
     // [修复] 打开面板时调用 fixPanelPosition
-    $('#cte-toggle-btn').on('click', () => {
+    $('#cte-toggle-btn').on('click', (e) => {
+        // [修改] 如果被标记为正在拖拽，则不执行打开面板的操作
+        if (isIconDragging) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
         const panel = $('#cte-map-panel');
         if (panel.is(':visible')) {
             panel.fadeOut();
@@ -245,9 +257,25 @@ async function initializeExtension() {
     $('#cte-close-btn').on('click', () => $('#cte-map-panel').fadeOut());
 
     if ($.fn.draggable) {
+        // 主面板拖拽
         $('#cte-map-panel').draggable({ 
             handle: '#cte-drag-handle',
             containment: 'window'
+        });
+
+        // [新增] 悬浮图标拖拽初始化
+        $('#cte-toggle-btn').draggable({
+            containment: 'window', // 限制在窗口内拖动
+            start: function() {
+                isIconDragging = true; // 开始拖拽，标记状态
+            },
+            stop: function() {
+                // 停止拖拽后，稍微延迟一下再取消标记
+                // 这是为了防止松开鼠标的瞬间触发 click 事件
+                setTimeout(() => {
+                    isIconDragging = false;
+                }, 50); 
+            }
         });
     }
 
