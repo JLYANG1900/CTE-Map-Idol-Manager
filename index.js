@@ -7,7 +7,13 @@ let stContext = null;
 window.CTEMap = {
     currentDestination: '',
     currentCompanion: '', 
-    currentScheduleItem: '', // [新增] 暂存当前要执行的行程内容
+    currentScheduleItem: '', 
+    
+    // [新增] 标记是否处于“行程执行-选择地点”模式
+    isSelectingForSchedule: false,
+    // [新增] 暂存行程参与者
+    tempScheduleParticipants: [],
+
     // 暂存NPC设置状态
     tempNPCState: { enabled: false, content: '' },
     // 预定义的可选角色列表
@@ -308,7 +314,15 @@ async function initializeExtension() {
 window.CTEMap.switchView = function(viewName, btn) {
     // 切换按钮样式
     $('.cte-nav-btn').removeClass('active');
-    $(btn).addClass('active');
+    // 如果 btn 存在则使用，否则根据 name 找（用于自动切换）
+    if (btn) {
+        $(btn).addClass('active');
+    } else {
+        // 简单的按索引查找，或者不处理样式（如果不需要）
+        const btns = document.querySelectorAll('.cte-nav-btn');
+        if (viewName === 'map' && btns[0]) $(btns[0]).addClass('active');
+        if (viewName === 'schedule' && btns[1]) $(btns[1]).addClass('active');
+    }
 
     // 切换内容显示
     $('.cte-view').removeClass('active');
@@ -446,6 +460,8 @@ window.CTEMap.renderSchedule = function(items) {
 
 // [修改] 打开参与者选择弹窗
 window.CTEMap.openParticipantSelection = function(itemText) {
+    // 重置模式状态，防止混淆
+    window.CTEMap.isSelectingForSchedule = false; 
     window.CTEMap.currentScheduleItem = itemText;
     
     // 渲染复选框列表
@@ -476,8 +492,8 @@ window.CTEMap.openParticipantSelection = function(itemText) {
     $('#cte-participant-popup').show();
 };
 
-// [新增] 确认执行行程
-window.CTEMap.confirmExecution = function() {
+// [新增] 收集参与人员，并跳转到地图界面选择地点
+window.CTEMap.proceedToLocationSelection = function() {
     // 获取勾选的角色
     const selected = [];
     $('.cte-checkbox:checked').each(function() {
@@ -494,135 +510,22 @@ window.CTEMap.confirmExecution = function() {
         alert("请至少选择一位参与者！");
         return;
     }
-    
-    // 构建文本
-    const participantsText = selected.join(', ');
-    const text = `${participantsText} 开始执行行程：${window.CTEMap.currentScheduleItem}`;
-    
-    if (stContext) {
-        stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
-        window.CTEMap.closeAllPopups();
-    } else {
-        alert("无法连接到 SillyTavern。");
-    }
+
+    // 保存状态
+    window.CTEMap.tempScheduleParticipants = selected;
+    window.CTEMap.isSelectingForSchedule = true; // 标记为行程选择模式
+
+    // 关闭弹窗
+    window.CTEMap.closeAllPopups();
+
+    // 切换到地图视图
+    window.CTEMap.switchView('map');
+
+    // 提示用户 (可选)
+    // alert("请在地图上选择要前往的地点。"); 
 };
 
-function bindMapEvents() {
-    const mapContainer = document.getElementById('cte-map-container');
-    if (!mapContainer) return;
-    
-    const locations = mapContainer.querySelectorAll('.location');
-    
-    locations.forEach(elm => {
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
-        let hasMoved = false;
-
-        elm.onmousedown = function(e) {
-            e.preventDefault();
-            e.stopPropagation(); // 阻止事件冒泡
-            isDragging = true;
-            hasMoved = false;
-            elm.classList.add('dragging');
-            
-            startX = e.clientX;
-            startY = e.clientY;
-            initialLeft = elm.offsetLeft;
-            initialTop = elm.offsetTop;
-
-            document.onmousemove = function(e) {
-                if (!isDragging) return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
-
-                let newLeft = initialLeft + dx;
-                let newTop = initialTop + dy;
-                
-                newLeft = Math.max(0, Math.min(newLeft, mapContainer.offsetWidth));
-                newTop = Math.max(0, Math.min(newTop, mapContainer.offsetHeight));
-
-                elm.style.left = newLeft + 'px';
-                elm.style.top = newTop + 'px';
-            };
-
-            document.onmouseup = function() {
-                isDragging = false;
-                elm.classList.remove('dragging');
-                document.onmousemove = null;
-                document.onmouseup = null;
-
-                if (!hasMoved) {
-                    const popupId = elm.getAttribute('data-popup');
-                    if (popupId) window.CTEMap.showPopup(popupId);
-                } else {
-                    savePosition(elm.id, elm.style.left, elm.style.top);
-                }
-            };
-        };
-    });
-}
-
-function savePosition(id, left, top) {
-    let data = localStorage.getItem('cte_map_positions');
-    data = data ? JSON.parse(data) : {};
-    data[id] = { left, top };
-    localStorage.setItem('cte_map_positions', JSON.stringify(data));
-}
-
-function loadSavedPositions() {
-    const data = JSON.parse(localStorage.getItem('cte_map_positions'));
-    if (!data) return;
-    for (const [id, pos] of Object.entries(data)) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.left = pos.left;
-            el.style.top = pos.top;
-        }
-    }
-}
-
-function loadSavedBg() {
-    const bg = localStorage.getItem('cte_map_bg');
-    if (bg) {
-        document.getElementById('cte-map-container').style.backgroundImage = `url(${bg})`;
-    }
-}
-
-window.CTEMap.changeBackground = function(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('cte-map-container').style.backgroundImage = `url(${e.target.result})`;
-            localStorage.setItem('cte_map_bg', e.target.result);
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-};
-
-window.CTEMap.showPopup = function(id) {
-    if (id === 'dorm-detail-popup') window.CTEMap.closeAllPopups();
-    
-    // 使用 querySelector 限制在 panel 内部查找，避免找到错误的元素
-    const popup = document.querySelector(`#cte-map-panel #${id}`);
-    const overlay = document.querySelector(`#cte-map-panel #cte-overlay`);
-    
-    if (popup) {
-        if (overlay) overlay.style.display = 'block';
-        popup.style.display = 'block';
-        // 修正：打开弹窗时，让弹窗内部回滚到顶部
-        popup.scrollTop = 0;
-    }
-};
-
-window.CTEMap.closeAllPopups = function() {
-    // 隐藏遮罩和所有弹窗
-    $('#cte-map-panel #cte-overlay').hide();
-    $('#cte-map-panel .cte-popup').hide();
-    window.CTEMap.closeSubMenu();
-    window.CTEMap.closeTravelMenu();
-};
-
+// [修改] 打开 Travel Menu，根据模式显示不同内容
 window.CTEMap.openTravelMenu = function(destination) {
     window.CTEMap.currentDestination = destination;
     
@@ -633,25 +536,90 @@ window.CTEMap.openTravelMenu = function(destination) {
     const defaultNPC = window.CTEMap.npcDefaults[destination] || '';
 
     const box = $('#travel-menu-overlay');
-    box.find('.travel-options').html(`
-        <!-- 新增: NPC 遇见选项 -->
-        <div style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <span style="color:#aaa; font-size:13px;">是否遇见NPC？</span>
-                <div>
-                    <button id="btn-npc-yes" class="cte-btn" style="font-size:12px; padding:2px 8px; margin-right:5px; border-color:#666;" onclick="window.CTEMap.toggleNPC(true, '${defaultNPC}')">是</button>
-                    <button id="btn-npc-no" class="cte-btn" style="font-size:12px; padding:2px 8px; background:#b38b59; color:#1a1a1a;" onclick="window.CTEMap.toggleNPC(false)">否</button>
-                </div>
-            </div>
-            <input type="text" id="npc-input" class="travel-input" style="display:none; font-size:13px; margin-bottom:0;" placeholder="请输入遇见的人 (例如: 粉丝)" value="${defaultNPC}">
-        </div>
 
-        <button class="cte-btn" onclick="window.CTEMap.confirmTravel(true)">👤 独自前往</button>
-        <!-- [修改] 点击按钮后不再直接跳转，而是先保存状态 -->
-        <button class="cte-btn" onclick="window.CTEMap.prepareCompanionInput()">👥 和……一起前往</button>
-        <button class="cte-btn" style="margin-top: 10px; border-color: #666; color: #888;" onclick="window.CTEMap.closeTravelMenu()">关闭</button>
-    `);
+    // 核心判断：是“普通模式”还是“行程执行模式”？
+    if (window.CTEMap.isSelectingForSchedule) {
+        // ======================
+        // 行程执行模式 UI
+        // ======================
+        box.find('.travel-options').html(`
+            <div style="text-align:center; color:#e0c5a1; margin-bottom:15px; font-size:14px; border-bottom:1px solid #444; padding-bottom:10px;">
+                正在执行行程：<br>
+                <span style="color:#b38b59; font-weight:bold;">${window.CTEMap.currentScheduleItem}</span>
+            </div>
+
+            <!-- NPC 遇见选项 (保持不变) -->
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#aaa; font-size:13px;">是否遇见NPC？</span>
+                    <div>
+                        <button id="btn-npc-yes" class="cte-btn" style="font-size:12px; padding:2px 8px; margin-right:5px; border-color:#666;" onclick="window.CTEMap.toggleNPC(true, '${defaultNPC}')">是</button>
+                        <button id="btn-npc-no" class="cte-btn" style="font-size:12px; padding:2px 8px; background:#b38b59; color:#1a1a1a;" onclick="window.CTEMap.toggleNPC(false)">否</button>
+                    </div>
+                </div>
+                <input type="text" id="npc-input" class="travel-input" style="display:none; font-size:13px; margin-bottom:0;" placeholder="请输入遇见的人 (例如: 粉丝)" value="${defaultNPC}">
+            </div>
+
+            <!-- 仅显示确认按钮 -->
+            <button class="cte-btn" onclick="window.CTEMap.finalizeScheduleExecution()" style="background:#b38b59; color:#1a1a1a; font-weight:bold;">✅ 确认执行</button>
+            
+            <button class="cte-btn" style="margin-top: 10px; border-color: #666; color: #888;" onclick="window.CTEMap.closeTravelMenu()">取消</button>
+        `);
+    } else {
+        // ======================
+        // 普通模式 UI (原有)
+        // ======================
+        box.find('.travel-options').html(`
+            <!-- 新增: NPC 遇见选项 -->
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#aaa; font-size:13px;">是否遇见NPC？</span>
+                    <div>
+                        <button id="btn-npc-yes" class="cte-btn" style="font-size:12px; padding:2px 8px; margin-right:5px; border-color:#666;" onclick="window.CTEMap.toggleNPC(true, '${defaultNPC}')">是</button>
+                        <button id="btn-npc-no" class="cte-btn" style="font-size:12px; padding:2px 8px; background:#b38b59; color:#1a1a1a;" onclick="window.CTEMap.toggleNPC(false)">否</button>
+                    </div>
+                </div>
+                <input type="text" id="npc-input" class="travel-input" style="display:none; font-size:13px; margin-bottom:0;" placeholder="请输入遇见的人 (例如: 粉丝)" value="${defaultNPC}">
+            </div>
+
+            <button class="cte-btn" onclick="window.CTEMap.confirmTravel(true)">👤 独自前往</button>
+            <button class="cte-btn" onclick="window.CTEMap.prepareCompanionInput()">👥 和……一起前往</button>
+            <button class="cte-btn" style="margin-top: 10px; border-color: #666; color: #888;" onclick="window.CTEMap.closeTravelMenu()">关闭</button>
+        `);
+    }
+
     box.css('display', 'flex');
+};
+
+// [新增] 最终执行行程指令 (包含人员、地点、NPC、行程内容)
+window.CTEMap.finalizeScheduleExecution = function() {
+    const participants = window.CTEMap.tempScheduleParticipants.join(', ');
+    const destination = window.CTEMap.currentDestination;
+    const scheduleItem = window.CTEMap.currentScheduleItem;
+    
+    let npcText = '';
+    const npcInput = document.getElementById('npc-input');
+    // 注意：这里需要重新判断 toggleNPC 的状态，因为 DOM 刚刚被重新渲染了
+    // 简单起见，我们信任用户当前在界面上的输入。
+    // 如果 NPC 输入框可见，且有值，则认为触发了 NPC
+    if (npcInput && npcInput.style.display !== 'none') {
+         const val = npcInput.value.trim();
+         if (val) npcText = `，遇见了${val}`;
+    }
+
+    // 构造指令文本
+    // 格式：[参与者] 前往 [地点] 执行行程：[内容]，[NPC]。
+    const text = `${participants} 前往${destination}执行行程：${scheduleItem}${npcText}。`;
+
+    if (stContext) {
+        stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
+        window.CTEMap.closeAllPopups();
+        // 执行完毕后，重置模式
+        window.CTEMap.isSelectingForSchedule = false;
+        window.CTEMap.tempScheduleParticipants = [];
+    } else {
+        alert("无法连接到 SillyTavern。");
+    }
 };
 
 window.CTEMap.toggleNPC = function(enable, defaultText) {
@@ -742,6 +710,13 @@ window.CTEMap.showActivityMenu = function() {
 
 window.CTEMap.closeTravelMenu = function() {
     $('#travel-menu-overlay').hide();
+    
+    // 如果是在行程选择模式下取消了，是否需要重置模式？
+    // 通常取消意味着用户不想继续这个流程了，所以重置比较合理。
+    if (window.CTEMap.isSelectingForSchedule) {
+        window.CTEMap.isSelectingForSchedule = false;
+        window.CTEMap.tempScheduleParticipants = [];
+    }
 };
 
 window.CTEMap.goToCustomDestination = function() {
@@ -973,4 +948,120 @@ window.CTEMap.openRooftopMenu = function() {
             <button class="cte-btn" onclick="window.CTEMap.openTravelMenu('天台花园酒吧')">🚀 前往</button>
         </div>
     `;
+};
+
+function bindMapEvents() {
+    const mapContainer = document.getElementById('cte-map-container');
+    if (!mapContainer) return;
+    
+    const locations = mapContainer.querySelectorAll('.location');
+    
+    locations.forEach(elm => {
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+        let hasMoved = false;
+
+        elm.onmousedown = function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // 阻止事件冒泡
+            isDragging = true;
+            hasMoved = false;
+            elm.classList.add('dragging');
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = elm.offsetLeft;
+            initialTop = elm.offsetTop;
+
+            document.onmousemove = function(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                
+                newLeft = Math.max(0, Math.min(newLeft, mapContainer.offsetWidth));
+                newTop = Math.max(0, Math.min(newTop, mapContainer.offsetHeight));
+
+                elm.style.left = newLeft + 'px';
+                elm.style.top = newTop + 'px';
+            };
+
+            document.onmouseup = function() {
+                isDragging = false;
+                elm.classList.remove('dragging');
+                document.onmousemove = null;
+                document.onmouseup = null;
+
+                if (!hasMoved) {
+                    const popupId = elm.getAttribute('data-popup');
+                    if (popupId) window.CTEMap.showPopup(popupId);
+                } else {
+                    savePosition(elm.id, elm.style.left, elm.style.top);
+                }
+            };
+        };
+    });
+}
+
+function savePosition(id, left, top) {
+    let data = localStorage.getItem('cte_map_positions');
+    data = data ? JSON.parse(data) : {};
+    data[id] = { left, top };
+    localStorage.setItem('cte_map_positions', JSON.stringify(data));
+}
+
+function loadSavedPositions() {
+    const data = JSON.parse(localStorage.getItem('cte_map_positions'));
+    if (!data) return;
+    for (const [id, pos] of Object.entries(data)) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.left = pos.left;
+            el.style.top = pos.top;
+        }
+    }
+}
+
+function loadSavedBg() {
+    const bg = localStorage.getItem('cte_map_bg');
+    if (bg) {
+        document.getElementById('cte-map-container').style.backgroundImage = `url(${bg})`;
+    }
+}
+
+window.CTEMap.changeBackground = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('cte-map-container').style.backgroundImage = `url(${e.target.result})`;
+            localStorage.setItem('cte_map_bg', e.target.result);
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+window.CTEMap.showPopup = function(id) {
+    if (id === 'dorm-detail-popup') window.CTEMap.closeAllPopups();
+    
+    // 使用 querySelector 限制在 panel 内部查找，避免找到错误的元素
+    const popup = document.querySelector(`#cte-map-panel #${id}`);
+    const overlay = document.querySelector(`#cte-map-panel #cte-overlay`);
+    
+    if (popup) {
+        if (overlay) overlay.style.display = 'block';
+        popup.style.display = 'block';
+        // 修正：打开弹窗时，让弹窗内部回滚到顶部
+        popup.scrollTop = 0;
+    }
+};
+
+window.CTEMap.closeAllPopups = function() {
+    // 隐藏遮罩和所有弹窗
+    $('#cte-map-panel #cte-overlay').hide();
+    $('#cte-map-panel .cte-popup').hide();
+    window.CTEMap.closeSubMenu();
+    window.CTEMap.closeTravelMenu();
 };
