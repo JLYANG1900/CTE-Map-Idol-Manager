@@ -2,7 +2,7 @@ const extensionName = "CTE_Map";
 const extensionPath = `scripts/extensions/third-party/${extensionName}`;
 
 let stContext = null;
-// [新增] 默认国家地图背景
+// 默认国家地图背景
 const DEFAULT_NATIONAL_BG = "https://files.catbox.moe/8z3pnp.png";
 
 // 定义全局命名空间
@@ -306,7 +306,20 @@ async function initializeExtension() {
     setupResizeListener();
 }
 
-// 初始化国家地图 DOM
+// [新增] 加载保存的国家地图城市位置
+function loadSavedNationalPositions() {
+    const data = localStorage.getItem('cte_national_map_positions');
+    return data ? JSON.parse(data) : {};
+}
+
+// [新增] 保存国家地图城市位置
+function saveNationalPosition(id, left, top) {
+    let data = loadSavedNationalPositions();
+    data[id] = { left, top };
+    localStorage.setItem('cte_national_map_positions', JSON.stringify(data));
+}
+
+// 初始化国家地图 DOM (包含拖拽逻辑)
 window.CTEMap.initNationalMap = function() {
     const mapContainer = document.getElementById('national-game-map');
     const infoContent = document.getElementById('national-info-content');
@@ -314,39 +327,90 @@ window.CTEMap.initNationalMap = function() {
     if (!mapContainer || !infoContent) return;
 
     mapContainer.innerHTML = '';
+    
+    // 读取保存的位置
+    const savedPositions = loadSavedNationalPositions();
 
     window.CTEMap.nationalCities.forEach(city => {
         const cityEl = document.createElement('div');
         cityEl.className = 'national-city';
-        cityEl.id = `national-city-${city.id}`;
-        cityEl.style.top = city.top;
-        cityEl.style.left = city.left;
+        const elementId = `national-city-${city.id}`;
+        cityEl.id = elementId;
+        
+        // 优先使用保存的位置
+        if (savedPositions[elementId]) {
+            cityEl.style.top = savedPositions[elementId].top;
+            cityEl.style.left = savedPositions[elementId].left;
+        } else {
+            cityEl.style.top = city.top;
+            cityEl.style.left = city.left;
+        }
 
         cityEl.innerHTML = `<i class="fa-solid ${city.icon}"></i><span class="name">${city.name}</span>`;
 
-        // 点击事件逻辑
-        cityEl.addEventListener('click', () => {
-            // 如果点击的是京港 (设置了 isReturn 标记)，则返回城市地图
-            if (city.isReturn) {
-                 window.CTEMap.switchView('map');
-            } else {
-                // [修改] 显示情报 + 前往按钮
-                let html = `<h2><i class="fa-solid fa-scroll"></i> ${city.name} - 情报简报</h2><ul><li>${city.info}</li></ul>`;
-                // 新增：前往按钮
-                html += `
-                    <div style="text-align:center; margin-top:15px; border-top:1px dashed #666; padding-top:10px;">
-                        <button class="cte-btn" onclick="window.CTEMap.openTravelMenu('${city.name}')" style="width:80%; padding:8px; background:#b38b59; color:#1a1a1a; font-weight:bold; font-size:14px;">🚀 前往 ${city.name}</button>
-                    </div>
-                `;
-                infoContent.innerHTML = html;
-            }
-        });
+        // [重点] 拖拽与点击逻辑整合
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+        let hasMoved = false;
+
+        cityEl.onmousedown = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isDragging = true;
+            hasMoved = false;
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = cityEl.offsetLeft;
+            initialTop = cityEl.offsetTop;
+
+            document.onmousemove = function(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+                
+                // 边界限制
+                newLeft = Math.max(0, Math.min(newLeft, mapContainer.offsetWidth));
+                newTop = Math.max(0, Math.min(newTop, mapContainer.offsetHeight));
+
+                cityEl.style.left = newLeft + 'px';
+                cityEl.style.top = newTop + 'px';
+            };
+
+            document.onmouseup = function() {
+                isDragging = false;
+                document.onmousemove = null;
+                document.onmouseup = null;
+
+                if (!hasMoved) {
+                    // 没有移动，视为点击事件
+                    if (city.isReturn) {
+                         window.CTEMap.switchView('map');
+                    } else {
+                        let html = `<h2><i class="fa-solid fa-scroll"></i> ${city.name} - 情报简报</h2><ul><li>${city.info}</li></ul>`;
+                        html += `
+                            <div style="text-align:center; margin-top:15px; border-top:1px dashed #666; padding-top:10px;">
+                                <button class="cte-btn" onclick="window.CTEMap.openTravelMenu('${city.name}')" style="width:80%; padding:8px; background:#b38b59; color:#1a1a1a; font-weight:bold; font-size:14px;">🚀 前往 ${city.name}</button>
+                            </div>
+                        `;
+                        infoContent.innerHTML = html;
+                    }
+                } else {
+                    // 发生了移动，保存新位置
+                    saveNationalPosition(elementId, cityEl.style.left, cityEl.style.top);
+                }
+            };
+        };
 
         mapContainer.appendChild(cityEl);
     });
 };
 
-// [新增] 更换国家地图背景
+// 更换国家地图背景
 window.CTEMap.changeNationalBackground = function(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -359,13 +423,13 @@ window.CTEMap.changeNationalBackground = function(input) {
     }
 };
 
-// [新增] 恢复默认国家地图背景
+// 恢复默认国家地图背景
 window.CTEMap.resetNationalBackground = function() {
     $('#national-game-map').css('background-image', `url(${DEFAULT_NATIONAL_BG})`);
     localStorage.setItem('cte_national_map_bg', DEFAULT_NATIONAL_BG);
 };
 
-// [新增] 加载保存的国家地图背景
+// 加载保存的国家地图背景
 window.CTEMap.loadSavedNationalBg = function() {
     const saved = localStorage.getItem('cte_national_map_bg');
     const bg = saved || DEFAULT_NATIONAL_BG;
