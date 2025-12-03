@@ -5,6 +5,9 @@
         <h2>双击标签查看详情，长按拖拽标签移动</h2>
 
         <div class="controls-bar">
+            <!-- [新增] 前往国家地图按钮 -->
+            <button class="cte-btn" onclick="window.CTEMap.switchView('national-map')">🗺️ 前往国家地图</button>
+            <span style="border-right: 1px solid #444; margin: 0 10px; height: 15px;"></span>
             <span>更换背景：</span>
             <button class="cte-btn" onclick="document.getElementById('bg-upload').click()">📂 选择图片...</button>
             <input type="file" id="bg-upload" accept="image/*" style="display:none;" onchange="window.CTEMap.changeBackground(this)">
@@ -25,6 +28,31 @@
             <div class="location" id="office2" style="top: 70%; left: 15%;" data-popup="office2-popup"><span class="label">万城娱乐</span></div>
             <div class="location" id="highschool" style="top: 85%; left: 30%;" data-popup="highschool-popup"><span class="label">京港第三高中</span></div>
             <div class="location" id="other-places" style="top: 85%; left: 85%;" data-popup="other-places-popup"><span class="label">其他地点</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- [新增] 国家地图视图 -->
+<div id="cte-view-national-map" class="cte-view">
+    <div class="cte-wrapper" style="width: 95%;">
+        <h1>权贵之心：国家战略地图</h1>
+        <p style="font-family: 'Zhi Mang Xing', cursive; color: #a0a0a0; margin-top: 0px; letter-spacing: 1px; font-size: 14px;">一张错综复杂的权力地图，一场没有硝烟的资本战争</p>
+        
+        <div class="controls-bar" style="justify-content: center;">
+             <button class="cte-btn" onclick="window.CTEMap.switchView('map')">↩️ 返回京港市</button>
+        </div>
+
+        <!-- 国家地图容器 -->
+        <div class="national-map-container" id="national-game-map">
+            <!-- 城市将由 JS 注入 -->
+        </div>
+
+        <div class="national-info-panel">
+            <div id="national-info-content">
+                <h2><i class="fa-solid fa-map-location-dot"></i> 战略情报中心</h2>
+                <p>请点击地图上的城市图标以获取详细情报...</p>
+                <p style="font-size: 12px; color: #888; margin-top: 10px;">提示：点击“京港”图标可直接返回市内地图。</p>
+            </div>
         </div>
     </div>
 </div>
