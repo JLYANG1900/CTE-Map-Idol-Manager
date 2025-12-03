@@ -663,11 +663,10 @@
     display: block; /* 覆盖 grid */
     margin-bottom: 20px;
     
-    /* 移植国家地图的网格背景 */
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), 
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
+    /* [修改] 默认背景样式适配图片 */
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
