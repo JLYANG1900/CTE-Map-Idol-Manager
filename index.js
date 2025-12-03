@@ -25,6 +25,18 @@ window.CTEMap = {
         '京港电视台': '粉丝、工作人员、其他团队成员',
         '私人会所': '社交名流'
     },
+
+    // [新增] 国家地图城市数据
+    nationalCities: [
+        { id: 'jinggang', name: '京港', icon: 'fa-landmark-dome', top: '20%', left: '70%', isReturn: true, info: '<strong><i class="fa-solid fa-crown"></i> 权力漩涡:</strong> 首都，政治中心。远洋、万城、隆桑、盛华四大集团总部所在地。祁寒川的权力根基，也是你商业帝国的指挥中心。目前，东区深水泊位项目已解决，城市基建将迎来新一轮扩张。' },
+        { id: 'langjing', name: '琅京', icon: 'fa-gem', top: '40%', left: '80%', info: '<strong><i class="fa-solid fa-coins"></i> 豪门金库:</strong> 金融与地产重镇，钰明珠宝总部。老钱家族盘踞，是周锦宁母亲家族势力的核心。近期慈善音乐节在此举办，CTE的声望达到新高。' },
+        { id: 'shenzhou', name: '深州', icon: 'fa-microchip', top: '80%', left: '75%', info: '<strong><i class="fa-solid fa-chart-line"></i> 科技前沿:</strong> 沿海经济特区，高新科技产业发达。你在此地成功收服陈默，为远洋集团的供应链增添了重要一环。即将到来的“潮音盛典”将是CTE展示创新舞台的绝佳机会。' },
+        { id: 'haizhou', name: '海洲', icon: 'fa-anchor', top: '75%', left: '55%', info: '<strong><i class="fa-solid fa-skull-crossbones"></i> 灰色地带:</strong> 港口城市，地下势力活跃。洪兴社陈伯在此拥有绝对话语权。此地是‘天罗地网’计划的关键棋子，也是祁闻砚海外资金流入的重要通道。' },
+        { id: 'taihe', name: '台河', icon: 'fa-book-open', top: '30%', left: '40%', info: '<strong><i class="fa-solid fa-graduation-cap"></i> 学术之城:</strong> 历史名城，名校云集。秦述的故乡，代表着他与之决裂的传统学术家庭。这里的氛围与京港的浮华形成鲜明对比。' },
+        { id: 'huashao', name: '化邵', icon: 'fa-industry', top: '50%', left: '20%', info: '<strong><i class="fa-solid fa-wrench"></i> 工业心脏:</strong> 重工业城市，工人阶层为主。代表着国家经济的基石，也是政策变动最敏感的区域之一。远洋集团的某些大宗商品业务与此地紧密相关。' },
+        { id: 'yucheng', name: '玉城', icon: 'fa-martini-glass-citrus', top: '65%', left: '35%', info: '<strong><i class="fa-solid fa-sun"></i> 度假天堂:</strong> 风景优美的旅游胜地，富豪的休闲后花园。这里是资本进行非正式交易和人脉巩固的温床。' },
+    ],
+
     // 角色资料数据
     characterProfiles: {
         '魏月华': {
@@ -211,11 +223,19 @@ async function initializeExtension() {
     $('#cte-map-panel').remove();
     $('#cte-toggle-btn').remove();
     $('link[href*="CTE_Map/style.css"]').remove();
+    // [新增] 移除旧的 FontAwesome 防止重复
+    $('link[href*="font-awesome"]').remove();
 
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = `${extensionPath}/style.css`;
     document.head.appendChild(link);
+
+    // [新增] 注入 FontAwesome CSS (用于国家地图图标)
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+    document.head.appendChild(faLink);
 
     // [修改] 顶部导航栏增加了“地图”和“行程表”的切换按钮
     const panelHTML = `
@@ -246,6 +266,8 @@ async function initializeExtension() {
         bindMapEvents();
         loadSavedPositions();
         loadSavedBg();
+        // [新增] 初始化国家地图
+        window.CTEMap.initNationalMap();
 
     } catch (e) {
         console.error("[CTE Map] Error:", e);
@@ -310,18 +332,52 @@ async function initializeExtension() {
     setupResizeListener();
 }
 
-// [新增] 视图切换功能 (地图/行程表)
+// [新增] 初始化国家地图 DOM
+window.CTEMap.initNationalMap = function() {
+    const mapContainer = document.getElementById('national-game-map');
+    const infoContent = document.getElementById('national-info-content');
+    
+    if (!mapContainer || !infoContent) return;
+
+    // 清空现有内容 (防止重复初始化)
+    mapContainer.innerHTML = '';
+
+    window.CTEMap.nationalCities.forEach(city => {
+        const cityEl = document.createElement('div');
+        cityEl.className = 'national-city';
+        cityEl.id = `national-city-${city.id}`;
+        cityEl.style.top = city.top;
+        cityEl.style.left = city.left;
+
+        cityEl.innerHTML = `<i class="fa-solid ${city.icon}"></i><span class="name">${city.name}</span>`;
+
+        // [重点] 点击事件逻辑
+        cityEl.addEventListener('click', () => {
+            // 如果点击的是京港 (设置了 isReturn 标记)，则返回城市地图
+            if (city.isReturn) {
+                 window.CTEMap.switchView('map');
+            } else {
+                // 否则显示情报
+                infoContent.innerHTML = `<h2><i class="fa-solid fa-scroll"></i> ${city.name} - 情报简报</h2><ul><li>${city.info}</li></ul>`;
+            }
+        });
+
+        mapContainer.appendChild(cityEl);
+    });
+};
+
+// [修改] 视图切换功能 (地图/行程表/国家地图)
 window.CTEMap.switchView = function(viewName, btn) {
-    // 切换按钮样式
+    // 切换按钮样式 (仅当存在对应按钮时)
     $('.cte-nav-btn').removeClass('active');
-    // 如果 btn 存在则使用，否则根据 name 找（用于自动切换）
     if (btn) {
         $(btn).addClass('active');
     } else {
-        // 简单的按索引查找，或者不处理样式（如果不需要）
+        // 如果是从内部逻辑跳转 (如国家地图返回)，手动更新顶部导航状态
         const btns = document.querySelectorAll('.cte-nav-btn');
         if (viewName === 'map' && btns[0]) $(btns[0]).addClass('active');
         if (viewName === 'schedule' && btns[1]) $(btns[1]).addClass('active');
+        // 'national-map' 没有顶部导航按钮，所以不需要 activate 任何按钮，或者保持 'map' 激活也可以
     }
 
     // 切换内容显示
