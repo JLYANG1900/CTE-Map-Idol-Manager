@@ -1,4 +1,3 @@
-
 const extensionName = "CTE_Map";
 const extensionPath = `scripts/extensions/third-party/${extensionName}`;
 
@@ -266,7 +265,8 @@ async function initializeExtension() {
     $('#cte-map-panel').remove();
     $('#cte-toggle-btn').remove();
     $('link[href*="CTE_Map/style.css"]').remove();
-    $('link[href*="font-awesome"]').remove();
+    // [FIX] Removed the line that deletes FontAwesome to prevent ghost icons from appearing
+    // $('link[href*="font-awesome"]').remove(); 
 
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -335,7 +335,8 @@ async function initializeExtension() {
             panel.fadeOut();
         } else {
             // [NEW] Scan for stats every time we open panel
-            scanForRPGStats();
+            // [FIX] Use global reference
+            window.CTEMap.scanForRPGStats();
             panel.fadeIn(200, function() {
                 fixPanelPosition();
                 if ($('#cte-view-schedule').is(':visible')) {
@@ -380,11 +381,13 @@ function bindRPGEvents() {
         $(this).addClass('active');
         const subView = $(this).data('subview');
         // Simple logic to rerender content based on subview
-        renderRPGContent(subView);
+        // [FIX] Use global reference
+        window.CTEMap.renderRPGContent(subView);
     });
 }
 
-function scanForRPGStats() {
+// [FIX] Attached to window.CTEMap to make it globally accessible
+window.CTEMap.scanForRPGStats = function() {
     // MVU Logic: Scan SillyTavern chat for <stat_data> or variables
     console.log("[CTE Manager] Scanning for stats...");
     
@@ -397,7 +400,8 @@ function scanForRPGStats() {
     $('#rpg-val-morale').text(window.CTEMap.RPG.state.morale);
 }
 
-function renderRPGContent(viewType) {
+// [FIX] Attached to window.CTEMap to make it globally accessible
+window.CTEMap.renderRPGContent = function(viewType) {
     const container = $('#cte-rpg-content-area');
     container.empty();
     
@@ -689,8 +693,9 @@ window.CTEMap.switchView = function(viewName, btn) {
         window.CTEMap.refreshSchedule();
     }
     if (viewName === 'manager') {
-        scanForRPGStats();
-        renderRPGContent('dashboard'); // Default subview
+        // [FIX] Use global reference
+        window.CTEMap.scanForRPGStats();
+        window.CTEMap.renderRPGContent('dashboard'); // Default subview
     }
     if (viewName === 'heartbeat') {
         window.CTEMap.Heartbeat.renderGrid();
