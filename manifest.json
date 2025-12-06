@@ -1,8 +1,9 @@
 {
-    "display_name": "CTE 虚拟地图",
+    "display_name": "CTE Map & Idol Manager",
     "author": "JLYANG1900",
-    "version": "1.4.0",
-    "description": "京港市虚拟地图扩展，支持拖拽坐标、查看地点详情及通过 slash command 发送出行指令。新增行程表功能。支持多人出行活动自定义。支持自定义NPC偶遇事件。集成国家地图战略视图。",
+    "version": "2.0.0",
+    "description": "京港市虚拟地图扩展终极版。包含原有的地图导航、行程表功能，并新增【偶像事务所RPG管理终端】与【亲密互动(Heartbeat)系统】。支持动态读取角色状态(Vocal/Dance/Desire)，集成全功能偶像培养模拟器。",
     "js": "index.js",
-    "css": "style.css"
+    "css": "style.css",
+    "html": "map.html"
 }
