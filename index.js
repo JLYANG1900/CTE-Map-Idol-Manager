@@ -1,3 +1,4 @@
+
 const extensionName = "CTE_Map";
 const extensionPath = `scripts/extensions/third-party/${extensionName}`;
 
@@ -5,8 +6,40 @@ let stContext = null;
 // 默认国家地图背景
 const DEFAULT_NATIONAL_BG = "https://files.catbox.moe/8z3pnp.png";
 
-// 定义全局命名空间
-window.CTEMap = {
+// ==========================================
+// [NEW] Global State for RPG Manager
+// ==========================================
+window.CTEMap = window.CTEMap || {};
+
+window.CTEMap.RPG = {
+    state: {
+        funds: 2450000,
+        fans: 824000,
+        morale: "High"
+    },
+    // Adding extended stats to profiles dynamically later
+};
+
+window.CTEMap.Heartbeat = {
+    activities: [
+        { name: "私人练歌", icon: "fa-microphone", desc: "关上隔音室的门，只有你们两个人的呼吸声。" },
+        { name: "舞蹈特训", icon: "fa-person-running", desc: "贴身指导每一个动作，汗水交织。" },
+        { name: "浴室水蒸气", icon: "fa-shower", desc: "在湿热的雾气中，探索彼此身体的每一寸。" },
+        { name: "深夜卧室", icon: "fa-bed", desc: "用最温柔的方式，陪伴彼此度过漫漫长夜。" },
+        { name: "角色扮演", icon: "fa-masks-theater", desc: "尝试不同的身份，解锁不一样的刺激体验。" },
+        { name: "镜前诱惑", icon: "fa-wand-magic-sparkles", desc: "让他看清自己为你疯狂的模样。" },
+        { name: "专属女仆", icon: "fa-broom", desc: "换上那套特别的服装，提供全方位服务。" },
+        { name: "厨房幻想", icon: "fa-utensils", desc: "在充满烟火气的地方做最疯狂的事。" },
+        { name: "按摩室SPA", icon: "fa-hot-tub-person", desc: "指尖划过肌肤，理智逐渐蒸发。" },
+        { name: "天台夜风", icon: "fa-wind", desc: "城市的霓虹灯在脚下闪烁，我们在风中沉沦。" }
+    ],
+    currentActivity: null
+};
+
+// ==========================================
+// Original CTE Map Data & Logic
+// ==========================================
+window.CTEMap = Object.assign(window.CTEMap, {
     currentDestination: '',
     currentCompanion: '', 
     currentScheduleItem: '', 
@@ -30,82 +63,104 @@ window.CTEMap = {
 
     // 国家地图城市数据
     nationalCities: [
-        { id: 'jinggang', name: '京港', icon: 'fa-landmark-dome', top: '20%', left: '70%', isReturn: true, info: '<strong><i class="fa-solid fa-crown"></i> 权力漩涡:</strong> 首都，政治中心。远洋、万城、隆桑、盛华四大集团总部所在地。国家的权力根基，也是你商业帝国的指挥中心。目前，东区深水泊位项目已解决，城市基建将迎来新一轮扩张。' },
+        { id: 'jinggang', name: '京港', icon: 'fa-landmark-dome', top: '20%', left: '70%', isReturn: true, info: '<strong><i class="fa-solid fa-crown"></i> 权力漩涡:</strong> 首都，政治中心。远洋、万城、隆桑、盛华四大集团总部所在地。祁寒川的权力根基，也是你商业帝国的指挥中心。目前，东区深水泊位项目已解决，城市基建将迎来新一轮扩张。' },
         { id: 'langjing', name: '琅京', icon: 'fa-gem', top: '40%', left: '80%', info: '<strong><i class="fa-solid fa-coins"></i> 豪门金库:</strong> 金融与地产重镇，钰明珠宝总部。老钱家族盘踞，是周锦宁母亲家族势力的核心。近期慈善音乐节在此举办，CTE的声望达到新高。' },
         { id: 'shenzhou', name: '深州', icon: 'fa-microchip', top: '80%', left: '75%', info: '<strong><i class="fa-solid fa-chart-line"></i> 科技前沿:</strong> 沿海经济特区，高新科技产业发达。你在此地成功收服陈默，为远洋集团的供应链增添了重要一环。即将到来的“潮音盛典”将是CTE展示创新舞台的绝佳机会。' },
-        { id: 'haizhou', name: '海洲', icon: 'fa-anchor', top: '75%', left: '55%', info: '<strong><i class="fa-solid fa-skull-crossbones"></i> 灰色地带:</strong> 港口城市，地下势力活跃。洪兴社陈伯在此拥有绝对话语权。此地是‘天罗地网’计划的关键棋子，也是海外非法资金流入的重要通道。' },
+        { id: 'haizhou', name: '海洲', icon: 'fa-anchor', top: '75%', left: '55%', info: '<strong><i class="fa-solid fa-skull-crossbones"></i> 灰色地带:</strong> 港口城市，地下势力活跃。洪兴社陈伯在此拥有绝对话语权。此地是‘天罗地网’计划的关键棋子，也是祁闻砚海外资金流入的重要通道。' },
         { id: 'taihe', name: '台河', icon: 'fa-book-open', top: '30%', left: '40%', info: '<strong><i class="fa-solid fa-graduation-cap"></i> 学术之城:</strong> 历史名城，名校云集。秦述的故乡，代表着他与之决裂的传统学术家庭。这里的氛围与京港的浮华形成鲜明对比。' },
         { id: 'huashao', name: '化邵', icon: 'fa-industry', top: '50%', left: '20%', info: '<strong><i class="fa-solid fa-wrench"></i> 工业心脏:</strong> 重工业城市，工人阶层为主。代表着国家经济的基石，也是政策变动最敏感的区域之一。远洋集团的某些大宗商品业务与此地紧密相关。' },
         { id: 'yucheng', name: '玉城', icon: 'fa-martini-glass-citrus', top: '65%', left: '35%', info: '<strong><i class="fa-solid fa-sun"></i> 度假天堂:</strong> 风景优美的旅游胜地，富豪的休闲后花园。这里是资本进行非正式交易和人脉巩固的温床。' },
     ],
 
-    // 角色资料数据
+    // 角色资料数据 (Augmented with RPG Stats in init)
     characterProfiles: {
         '魏月华': {
             image: 'https://files.catbox.moe/auqnct.jpeg',
             age: 27,
             role: '万城娱乐CEO、CTE男团缔造者',
-            personality: '严肃、冷酷、认真、严谨'
+            personality: '严肃、冷酷、认真、严谨',
+            rpgStats: { vocal: 60, dance: 60, stamina: 90 }, // Base stats
+            status: { desire: 0, affection: 0 }
         },
         '秦述': {
             image: 'https://files.catbox.moe/c2khbl.jpeg',
             age: 24,
             role: 'CTE男团队长、主舞担当、艺名Qshot',
-            personality: '沉默、清冷、内敛'
+            personality: '沉默、清冷、内敛',
+            rpgStats: { vocal: 88, dance: 96, stamina: 92 },
+            status: { desire: 0, affection: 0 }
         },
         '司洛': {
             image: 'https://files.catbox.moe/pohz52.jpeg',
             age: 24,
             role: 'CTE男团全能ACE、主舞担当、艺名SOLO',
-            personality: '慵懒、随性、玩世不恭'
+            personality: '慵懒、随性、玩世不恭',
+            rpgStats: { vocal: 92, dance: 95, stamina: 88 },
+            status: { desire: 0, affection: 0 }
         },
         '鹿言': {
             image: 'https://files.catbox.moe/parliq.jpeg',
             age: 23,
             role: 'CTE男团主唱担当、艺名DEER',
-            personality: '温柔、谦逊、善良'
+            personality: '温柔、谦逊、善良',
+            rpgStats: { vocal: 96, dance: 85, stamina: 85 },
+            status: { desire: 0, affection: 0 }
         },
         '魏星泽': {
             image: 'https://files.catbox.moe/syo0ze.jpeg',
             age: 20,
             role: 'CTE男团舞蹈担当、气氛担当、艺名STARS',
-            personality: '开朗、感性、大大咧咧'
+            personality: '开朗、感性、大大咧咧',
+            rpgStats: { vocal: 85, dance: 93, stamina: 95 },
+            status: { desire: 0, affection: 0 }
         },
         '周锦宁': {
             image: 'https://files.catbox.moe/1loxsn.jpeg',
             age: 20,
             role: 'CTE男团Rapper、门面担当、艺名JinNa',
-            personality: '傲娇、矜贵、毒舌'
+            personality: '傲娇、矜贵、毒舌',
+            rpgStats: { vocal: 88, dance: 90, stamina: 80 },
+            status: { desire: 0, affection: 0 }
         },
         '谌绪': {
             image: 'https://files.catbox.moe/9tnuva.png',
             age: 18,
             role: 'CTE男团主唱担当、忙内、艺名Chase',
-            personality: '腹黑、恶劣、隐藏病娇'
+            personality: '腹黑、恶劣、隐藏病娇',
+            rpgStats: { vocal: 90, dance: 88, stamina: 85 },
+            status: { desire: 0, affection: 0 }
         },
         '孟明赫': {
             image: 'https://files.catbox.moe/m446ro.jpeg',
             age: 20,
             role: 'CTE男团Rapper、艺名Hades',
-            personality: '阴郁、厌世、内向、大胆叛逆'
+            personality: '阴郁、厌世、内向、大胆叛逆',
+            rpgStats: { vocal: 89, dance: 85, stamina: 82 },
+            status: { desire: 0, affection: 0 }
         },
         '亓谢': {
             image: 'https://files.catbox.moe/ev2g1l.png',
             age: 18,
             role: 'CTE男团舞蹈担当、副Rapper、艺名KNIFE',
-            personality: '疯批、天才、毒舌、直白'
+            personality: '疯批、天才、毒舌、直白',
+            rpgStats: { vocal: 80, dance: 94, stamina: 90 },
+            status: { desire: 0, affection: 0 }
         },
         '桑洛凡': {
             image: 'https://files.catbox.moe/syudzu.png',
             age: 27,
             role: '传奇Solo爱豆、CTE精神支柱、艺名Lovan',
-            personality: '慵懒随性、桀骜不驯、腹黑'
+            personality: '慵懒随性、桀骜不驯、腹黑',
+            rpgStats: { vocal: 98, dance: 90, stamina: 88 },
+            status: { desire: 0, affection: 0 }
         },
         '你': {
             image: '', // 用户自定义头像，默认为空
             age: '?',
             role: 'CTE宿舍成员',
-            personality: '由你定义'
+            personality: '由你定义',
+            rpgStats: { vocal: 50, dance: 50, stamina: 50 },
+            status: { desire: 0, affection: 0 }
         }
     },
     roomDetails: {
@@ -142,7 +197,7 @@ window.CTEMap = {
         '你': '每个成员都拥有独立的卧室套间，风格根据个人喜好进行装修，均配备了独立的豪华卫浴和步入式衣帽间，保证了绝对的私密性。',
         '公共书房/阅览区': '位于楼层中间，有一个巨大的书架，藏书丰富，供成员阅读或安静地处理个人事务。'
     }
-};
+});
 
 const initInterval = setInterval(() => {
     if (window.SillyTavern && window.SillyTavern.getContext && window.jQuery) {
@@ -223,6 +278,7 @@ async function initializeExtension() {
     faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
     document.head.appendChild(faLink);
 
+    // [MODIFIED] Added navigation buttons for Manager and Heartbeat
     const panelHTML = `
         <div id="cte-toggle-btn" title="点击打开 / 长按拖动" 
              style="position:fixed; top:130px; left:10px; z-index:9000; width:40px; height:40px; background:#b38b59; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:move; box-shadow:0 4px 10px rgba(0,0,0,0.3); color:#fff; font-size:20px;">
@@ -230,10 +286,12 @@ async function initializeExtension() {
         </div>
         <div id="cte-map-panel">
             <div id="cte-drag-handle">
-                <span>CTE 档案地图</span>
+                <span>CTE 偶像地图系统</span>
                 <div class="cte-nav-group">
                     <button class="cte-nav-btn active" onclick="window.CTEMap.switchView('map', this)">地图</button>
-                    <button class="cte-nav-btn" onclick="window.CTEMap.switchView('schedule', this)">行程表</button>
+                    <button class="cte-nav-btn" onclick="window.CTEMap.switchView('schedule', this)">行程</button>
+                    <button class="cte-nav-btn" onclick="window.CTEMap.switchView('manager', this)">事务所</button>
+                    <button class="cte-nav-btn" style="color: #FF69B4;" onclick="window.CTEMap.switchView('heartbeat', this)">♥</button>
                     <span id="cte-close-btn" style="cursor:pointer; margin-left:10px;">❌</span>
                 </div>
             </div>
@@ -254,6 +312,9 @@ async function initializeExtension() {
         // 初始化国家地图与背景
         window.CTEMap.initNationalMap();
         window.CTEMap.loadSavedNationalBg();
+        
+        // [NEW] Initialize RPG/Heartbeat logic
+        bindRPGEvents();
 
     } catch (e) {
         console.error("[CTE Map] Error:", e);
@@ -273,6 +334,8 @@ async function initializeExtension() {
         if (panel.is(':visible')) {
             panel.fadeOut();
         } else {
+            // [NEW] Scan for stats every time we open panel
+            scanForRPGStats();
             panel.fadeIn(200, function() {
                 fixPanelPosition();
                 if ($('#cte-view-schedule').is(':visible')) {
@@ -305,6 +368,175 @@ async function initializeExtension() {
 
     setupResizeListener();
 }
+
+// ==========================================
+// [NEW] RPG & Heartbeat Logic Implementation
+// ==========================================
+
+function bindRPGEvents() {
+    // 侧边栏子视图切换 (Manager Terminal)
+    $('.cte-rpg-nav-btn').on('click', function() {
+        $('.cte-rpg-nav-btn').removeClass('active');
+        $(this).addClass('active');
+        const subView = $(this).data('subview');
+        // Simple logic to rerender content based on subview
+        renderRPGContent(subView);
+    });
+}
+
+function scanForRPGStats() {
+    // MVU Logic: Scan SillyTavern chat for <stat_data> or variables
+    console.log("[CTE Manager] Scanning for stats...");
+    
+    // Simulate finding data or fallback to defaults
+    // In a real scenario, we would parse stContext.chat
+    
+    // Refresh the HUD
+    $('#rpg-val-funds').text(window.CTEMap.RPG.state.funds.toLocaleString());
+    $('#rpg-val-fans').text(window.CTEMap.RPG.state.fans.toLocaleString());
+    $('#rpg-val-morale').text(window.CTEMap.RPG.state.morale);
+}
+
+function renderRPGContent(viewType) {
+    const container = $('#cte-rpg-content-area');
+    container.empty();
+    
+    if (viewType === 'roster') {
+        let gridHtml = '<div class="cte-rpg-roster-grid">';
+        
+        for (const [name, profile] of Object.entries(window.CTEMap.characterProfiles)) {
+            if (name === '你') continue;
+            
+            // Warning logic for high desire
+            let warningHtml = '';
+            if (profile.status.desire > 80) {
+                warningHtml = `
+                    <div class="cte-rpg-warning-box">
+                        <span><i class="fa-solid fa-triangle-exclamation"></i> 欲望值过高</span>
+                        <button class="cte-heartbeat-shortcut" onclick="window.CTEMap.switchView('heartbeat')"><i class="fa-solid fa-heart"></i></button>
+                    </div>
+                `;
+            }
+
+            gridHtml += `
+            <div class="cte-rpg-card">
+                <div style="display:flex; gap:15px;">
+                    <div class="cte-rpg-avatar-box">
+                        <img src="${profile.image}">
+                        <div class="cte-rpg-role-tag">${profile.role.split('、')[0]}</div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#fff; font-weight:bold; font-size:14px;">${name}</div>
+                        <div style="font-size:10px; color:#888;">${profile.personality}</div>
+                        
+                        <div class="cte-rpg-stat-row">
+                             <div class="cte-rpg-stat-bar-container">
+                                <div class="label"><span>Vocal</span> <span>${profile.rpgStats.vocal}</span></div>
+                                <div class="bar-bg"><div class="bar-fill" style="width:${profile.rpgStats.vocal}%; background:#c5a065;"></div></div>
+                             </div>
+                             <div class="cte-rpg-stat-bar-container">
+                                <div class="label"><span>Dance</span> <span>${profile.rpgStats.dance}</span></div>
+                                <div class="bar-bg"><div class="bar-fill" style="width:${profile.rpgStats.dance}%; background:#c5a065;"></div></div>
+                             </div>
+                        </div>
+                        ${warningHtml}
+                    </div>
+                </div>
+            </div>`;
+        }
+        gridHtml += '</div>';
+        container.html(gridHtml);
+    } else if (viewType === 'agency') {
+        container.html('<div style="color:#888; text-align:center; padding:50px;">事务所运营功能正在开发中...<br>请先管理好现有艺人。</div>');
+    } else {
+        // Dashboard
+        container.html(`
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="cte-rpg-card">
+                    <h3 style="color:#fff; font-size:14px;">近期通告</h3>
+                    <ul style="list-style:none; padding:0; font-size:12px; color:#ccc;">
+                        <li style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);">京港电视台专访 <span style="float:right; color:#c5a065;">完成</span></li>
+                        <li style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);">新专辑《NEON》筹备 <span style="float:right; color:#888;">进行中</span></li>
+                    </ul>
+                </div>
+                <div class="cte-rpg-card" style="display:flex; align-items:center; justify-content:center;">
+                    <div style="text-align:center;">
+                        <div style="font-size:24px; color:#c5a065; font-weight:bold;">S+</div>
+                        <div style="font-size:10px; color:#666;">综合评价</div>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+}
+
+// Heartbeat Specific Logic
+window.CTEMap.Heartbeat.renderGrid = function() {
+    const container = $('#cte-hb-activity-grid');
+    container.empty();
+    
+    window.CTEMap.Heartbeat.activities.forEach(act => {
+        const card = `
+            <div class="cte-hb-activity-card">
+                <div class="cte-hb-activity-icon"><i class="fa-solid ${act.icon}"></i></div>
+                <div class="cte-hb-activity-name">${act.name}</div>
+                <div class="cte-hb-activity-desc">${act.desc}</div>
+                <button class="cte-hb-btn" onclick="window.CTEMap.Heartbeat.openModal('${act.name}')">安排互动</button>
+            </div>
+        `;
+        container.append(card);
+    });
+};
+
+window.CTEMap.Heartbeat.openModal = function(actName) {
+    window.CTEMap.Heartbeat.currentActivity = actName;
+    const list = $('#cte-hb-member-list');
+    list.empty();
+    
+    for (const [name, profile] of Object.entries(window.CTEMap.characterProfiles)) {
+        if (name === '你') continue;
+        const item = `
+            <div class="cte-hb-member-item" onclick="$(this).toggleClass('selected')">
+                <div class="cte-hb-member-avatar" style="background-image: url('${profile.image}')"></div>
+                <div class="cte-hb-member-name">${name}</div>
+            </div>
+        `;
+        list.append(item);
+    }
+    
+    $('#cte-hb-modal').addClass('active');
+};
+
+window.CTEMap.Heartbeat.closeModal = function() {
+    $('#cte-hb-modal').removeClass('active');
+};
+
+window.CTEMap.Heartbeat.confirmAssignment = function() {
+    const selected = [];
+    $('.cte-hb-member-item.selected').each(function() {
+        selected.push($(this).find('.cte-hb-member-name').text());
+    });
+    
+    if (selected.length === 0) {
+        alert("请至少选择一名成员！");
+        return;
+    }
+    
+    const activity = window.CTEMap.Heartbeat.currentActivity;
+    const text = `{{user}} 决定与 ${selected.join('、')} 进行亲密互动：${activity}。`;
+    
+    if (stContext) {
+        stContext.executeSlashCommandsWithOptions(`/setinput ${text}`);
+        window.CTEMap.closeAllPopups(); // Closes panel too if handled by general close logic, but here we just want to close modal usually
+        // For standard behavior, let's close the Heartbeat modal and maybe the main panel
+        window.CTEMap.Heartbeat.closeModal();
+        $('#cte-map-panel').fadeOut();
+    }
+};
+
+// ==========================================
+// Existing Logic (Preserved)
+// ==========================================
 
 // [新增] 加载保存的国家地图城市位置
 function loadSavedNationalPositions() {
@@ -437,13 +669,14 @@ window.CTEMap.loadSavedNationalBg = function() {
 };
 
 
-// 视图切换功能 (地图/行程表/国家地图)
+// 视图切换功能 (地图/行程表/国家地图/Manager/Heartbeat)
 window.CTEMap.switchView = function(viewName, btn) {
     $('.cte-nav-btn').removeClass('active');
     if (btn) {
         $(btn).addClass('active');
     } else {
         const btns = document.querySelectorAll('.cte-nav-btn');
+        // Simple fallback indexing for programmatic switching
         if (viewName === 'map' && btns[0]) $(btns[0]).addClass('active');
         if (viewName === 'schedule' && btns[1]) $(btns[1]).addClass('active');
     }
@@ -451,8 +684,16 @@ window.CTEMap.switchView = function(viewName, btn) {
     $('.cte-view').removeClass('active');
     $(`#cte-view-${viewName}`).addClass('active');
 
+    // [MODIFIED] Logic for new views
     if (viewName === 'schedule') {
         window.CTEMap.refreshSchedule();
+    }
+    if (viewName === 'manager') {
+        scanForRPGStats();
+        renderRPGContent('dashboard'); // Default subview
+    }
+    if (viewName === 'heartbeat') {
+        window.CTEMap.Heartbeat.renderGrid();
     }
 };
 
@@ -1133,6 +1374,8 @@ window.CTEMap.closeAllPopups = function() {
     $('#cte-map-panel .cte-popup').hide();
     window.CTEMap.closeSubMenu();
     
+    // Also close the new Heartbeat modal if open
+    window.CTEMap.Heartbeat.closeModal();
+    
     window.CTEMap.closeTravelMenu(isTravelMenuVisible);
 };
-
