@@ -5,7 +5,7 @@
         <h2>双击标签查看详情，长按拖拽标签移动</h2>
 
         <div class="controls-bar">
-            <!-- 前往国家地图按钮 -->
+            <!-- [原有功能保持] -->
             <button class="cte-btn" onclick="window.CTEMap.switchView('national-map')">🗺️ 前往国家地图</button>
             <span style="border-right: 1px solid #444; margin: 0 10px; height: 15px;"></span>
             <span>更换背景：</span>
@@ -32,7 +32,7 @@
     </div>
 </div>
 
-<!-- 国家地图视图 -->
+<!-- [原有] 国家地图视图 -->
 <div id="cte-view-national-map" class="cte-view">
     <div class="cte-wrapper" style="width: 95%;">
         <h1>权贵之心：国家战略地图</h1>
@@ -40,11 +40,6 @@
         
         <div class="controls-bar" style="justify-content: center;">
              <button class="cte-btn" onclick="window.CTEMap.switchView('map')">↩️ 返回京港市</button>
-             <span style="border-right: 1px solid #444; margin: 0 10px; height: 15px;"></span>
-             <!-- [新增] 国家地图背景控制 -->
-             <button class="cte-btn" onclick="document.getElementById('national-bg-upload').click()">🖼️ 更换地图背景</button>
-             <button class="cte-btn" onclick="window.CTEMap.resetNationalBackground()">🔄 恢复默认</button>
-             <input type="file" id="national-bg-upload" accept="image/*" style="display:none;" onchange="window.CTEMap.changeNationalBackground(this)">
         </div>
 
         <!-- 国家地图容器 -->
@@ -62,7 +57,7 @@
     </div>
 </div>
 
-<!-- 行程表视图 -->
+<!-- [原有] 行程表视图 -->
 <div id="cte-view-schedule" class="cte-view">
     <div class="cte-wrapper">
         <h1>当前行程安排</h1>
@@ -79,10 +74,66 @@
     </div>
 </div>
 
-<!-- 遮罩层 -->
+<!-- [新增] 偶像事务所 RPG 管理终端视图 -->
+<div id="cte-view-manager" class="cte-view" style="background-color: #0d0d0d;">
+    <div class="cte-rpg-container">
+        <!-- 侧边栏 -->
+        <div class="cte-rpg-sidebar">
+            <div class="cte-rpg-logo"><span>M</span></div>
+            <button class="cte-rpg-nav-btn active" data-subview="dashboard" title="概览"><i class="fa-solid fa-chart-pie"></i></button>
+            <button class="cte-rpg-nav-btn" data-subview="roster" title="艺人阵容"><i class="fa-solid fa-users"></i></button>
+            <button class="cte-rpg-nav-btn" data-subview="agency" title="事务所运营"><i class="fa-solid fa-building"></i></button>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="cte-rpg-main">
+            <!-- 顶部 HUD -->
+            <div class="cte-rpg-hud">
+                <div style="font-family:'Cinzel',serif; font-weight:bold; color:var(--cte-accent-gold); letter-spacing:2px;">IDOL OS v2.4</div>
+                <div class="cte-rpg-res-group">
+                    <div class="cte-rpg-res-item">
+                        <div class="cte-rpg-res-icon" style="color:#DDB753"><i class="fa-solid fa-coins"></i></div>
+                        <div><span class="cte-rpg-res-val" id="rpg-val-funds">Loading...</span><span class="cte-rpg-res-label">预算</span></div>
+                    </div>
+                    <div class="cte-rpg-res-item">
+                        <div class="cte-rpg-res-icon" style="color:#F472B6"><i class="fa-solid fa-heart"></i></div>
+                        <div><span class="cte-rpg-res-val" id="rpg-val-fans">Loading...</span><span class="cte-rpg-res-label">粉丝数</span></div>
+                    </div>
+                    <div class="cte-rpg-res-item">
+                        <div class="cte-rpg-res-icon" style="color:#60A5FA"><i class="fa-solid fa-fire"></i></div>
+                        <div><span class="cte-rpg-res-val" id="rpg-val-morale">High</span><span class="cte-rpg-res-label">团魂</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RPG 子视图内容容器 -->
+            <div id="cte-rpg-content-area" style="flex:1; padding: 20px; overflow-y: auto;">
+                <!-- 动态注入 RPG 内容 -->
+                <div style="color: #666;">正在连接 SillyTavern 神经接口...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- [新增] Heartbeat 亲密互动视图 -->
+<div id="cte-view-heartbeat" class="cte-view" style="background-color: #FFF0F5;">
+    <div class="cte-hb-container">
+        <div class="cte-hb-header">
+            <h1><i class="fa-solid fa-heart"></i> Special Interactions <i class="fa-solid fa-heart"></i></h1>
+            <p style="color: white; font-size: 12px; margin:0;">与成员进行深度互动的私密空间</p>
+        </div>
+        <div class="cte-hb-content">
+            <div class="cte-hb-grid" id="cte-hb-activity-grid">
+                <!-- JS Generated Activities -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 遮罩层 (保持不变) -->
 <div class="popup-overlay" id="cte-overlay" onclick="window.CTEMap.closeAllPopups()"></div>
 
-<!-- 出行菜单 -->
+<!-- 出行菜单 (保持不变 - DOM注入逻辑在JS中) -->
 <div id="travel-menu-overlay" onclick="if(event.target === this) window.CTEMap.closeTravelMenu()">
     <div class="travel-menu-box">
         <span class="close-btn" onclick="window.CTEMap.closeTravelMenu()">&times;</span>
@@ -91,7 +142,7 @@
     </div>
 </div>
 
-<!-- 参与者选择弹窗 -->
+<!-- 参与者选择弹窗 (原有) -->
 <div id="cte-participant-popup" class="cte-popup" style="max-width: 400px;">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
     <h3>👥 选择参与人员</h3>
@@ -112,7 +163,22 @@
     </div>
 </div>
 
-<!-- 自定义地点弹窗 -->
+<!-- [新增] Heartbeat 专属多选弹窗 -->
+<div id="cte-hb-modal" class="cte-hb-modal">
+    <div class="cte-hb-modal-content">
+        <h2 id="cte-hb-modal-title" style="margin: 0 0 10px 0;">分配成员</h2>
+        <p style="color: #666; font-size: 0.9rem;">请选择要参与互动的偶像（可多选）</p>
+        <div class="cte-hb-member-list" id="cte-hb-member-list">
+            <!-- JS Generated Members -->
+        </div>
+        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+            <button class="cte-hb-assign-button" id="cte-hb-confirm-btn" onclick="window.CTEMap.Heartbeat.confirmAssignment()">确认安排</button>
+            <button class="cte-hb-close-button" onclick="window.CTEMap.Heartbeat.closeModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 自定义地点弹窗 (原有) -->
 <div id="other-places-popup" class="cte-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
     <h3>🗺️ 自定义目的地</h3>
@@ -123,7 +189,7 @@
     </div>
 </div>
 
-<!-- 宿舍弹窗 -->
+<!-- 宿舍弹窗 (原有) -->
 <div id="dorm-popup" class="cte-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
     <h3>🏠 CTE男团宿舍</h3>
@@ -135,7 +201,7 @@
     </div>
 </div>
 
-<!-- 宿舍详情 -->
+<!-- 宿舍详情 (原有) -->
 <div id="dorm-detail-popup" class="cte-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
     <h3>🛋️ 宿舍内部</h3>
@@ -157,7 +223,7 @@
     </div>
 </div>
 
-<!-- 其他地点 -->
+<!-- 其他地点 (原有) -->
 <div id="office-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏢 远洋集团</h3><p>主营航运、大宗商品与投资的家族企业。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('远洋集团')">🚀 前往</button></div></div>
 <div id="villa-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏰 私人别墅</h3><p>你自己位于京港北区的一栋独栋别墅。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('私人别墅')">🚀 前往</button></div></div>
 <div id="office2-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>☕ 万城娱乐</h3><p>国内最大的娱乐产业集团之一。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('万城娱乐')">🚀 前往</button></div></div>
