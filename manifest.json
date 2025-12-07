@@ -1,9 +1,10 @@
 {
     "display_name": "CTE Map & Idol Manager (Archive Ver.)",
     "author": "JLYANG1900",
-    "version": "2.1.0",
-    "description": "京港市虚拟地图扩展 - 档案风格重制版。包含地图导航、行程表、偶像事务所管理与亲密互动系统。UI已重构为行政档案风格。",
+    "version": "2.0.0",
+    "description": "京港市虚拟地图扩展 - 档案风格重制版。包含地图导航、行程表、偶像事务所管理与亲密互动系统。",
     "js": "index.js",
     "css": "style.css",
     "html": "map.html"
 }
+
