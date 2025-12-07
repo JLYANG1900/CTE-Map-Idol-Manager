@@ -11,7 +11,7 @@
     window.CTEMap = window.CTEMap || {};
 
     // ==========================================
-    // 1. 数据定义 (数据定义部分保持不变，确保数据完整)
+    // 1. 数据定义
     // ==========================================
     
     // RPG 数据状态
@@ -66,6 +66,7 @@
             { id: 'yucheng', name: '玉城', icon: 'fa-martini-glass-citrus', top: '65%', left: '35%', info: '<strong><i class="fa-solid fa-sun"></i> 度假天堂:</strong> 旅游胜地...' },
         ],
 
+        // 角色档案：包含 image, rpgStats (Vocal/Dance), status (Desire/Affection)
         characterProfiles: {
             '魏月华': { image: 'https://files.catbox.moe/auqnct.jpeg', age: 27, role: '万城娱乐CEO', personality: '严肃、冷酷', rpgStats: { vocal: 60, dance: 60, stamina: 90 }, status: { desire: 0, affection: 0 } },
             '秦述': { image: 'https://files.catbox.moe/c2khbl.jpeg', age: 24, role: '队长、主舞', personality: '沉默、清冷', rpgStats: { vocal: 88, dance: 96, stamina: 92 }, status: { desire: 0, affection: 0 } },
@@ -106,10 +107,10 @@
     });
 
     // ==========================================
-    // 2. 核心功能函数 (逻辑加固版)
+    // 2. 核心功能函数
     // ==========================================
 
-    // 2.1 扫描 RPG 状态
+    // 2.1 扫描 RPG 状态 (Funds, Fans, Morale)
     window.CTEMap.scanForRPGStats = function() {
         if (window.CTEMap.RPG && window.CTEMap.RPG.state) {
             const fundsEl = document.querySelector('#cte-map-panel #rpg-val-funds');
@@ -122,7 +123,57 @@
         }
     };
 
-    // 2.2 渲染事务所内容 (原子化渲染 + 错误处理)
+    // [新增] 从 status_bottom1 读取角色动态状态 (欲望/好感)
+    window.CTEMap.readCharacterStatsFromChat = function() {
+        // 1. 获取 ST 上下文
+        let context = stContext;
+        if (!context && window.SillyTavern) {
+            context = window.SillyTavern.getContext();
+        }
+        if (!context || !context.chat || context.chat.length === 0) return;
+
+        // 2. 倒序查找包含 <status_bottom1> 的消息
+        let statusContent = null;
+        for (let i = context.chat.length - 1; i >= 0; i--) {
+            const msg = context.chat[i].mes || "";
+            // 正则匹配标签内容
+            const match = msg.match(/<status_bottom1>([\s\S]*?)<\/status_bottom1>/i);
+            if (match) {
+                statusContent = match[1];
+                break; // 找到最新的就停止
+            }
+        }
+
+        if (!statusContent) return; // 没找到数据则退出
+
+        // 3. 遍历所有角色并提取数据
+        for (const [name, profile] of Object.entries(window.CTEMap.characterProfiles)) {
+            if (name === '你') continue; // 跳过用户
+
+            // 构造正则：查找 <角色名>内容</角色名>
+            const charBlockRegex = new RegExp(`<${name}>([\\s\\S]*?)<\\/${name}>`, 'i');
+            const charMatch = statusContent.match(charBlockRegex);
+
+            if (charMatch) {
+                const blockText = charMatch[1];
+                
+                // 提取欲望 (支持 "欲望: 50" 或 "欲望：50%")
+                const desireMatch = blockText.match(/欲望[：:]\s*(\d+)/);
+                if (desireMatch) {
+                    profile.status.desire = parseInt(desireMatch[1]);
+                }
+
+                // 提取好感 (支持 "好感: 50" 或 "好感度：50")
+                const affMatch = blockText.match(/好感(?:度)?[：:]\s*(\d+)/);
+                if (affMatch) {
+                    profile.status.affection = parseInt(affMatch[1]);
+                }
+            }
+        }
+        console.log("[CTE Map] Character stats updated from chat.");
+    };
+
+    // 2.2 渲染事务所内容
     window.CTEMap.renderRPGContent = function(viewType) {
         // 使用限定范围的选择器，确保获取到的是当前面板内的元素
         const container = document.querySelector('#cte-map-panel #cte-rpg-content-area');
@@ -132,7 +183,6 @@
             return;
         }
 
-        // 预先构建 HTML 字符串，防止操作 DOM 时出错导致页面残留
         let htmlContent = '';
 
         try {
@@ -141,26 +191,65 @@
                 for (const [name, profile] of Object.entries(window.CTEMap.characterProfiles)) {
                     if (name === '你') continue;
                     
+                    const roleText = (profile.role && typeof profile.role === 'string') ? profile.role.split('、')[0] : '成员';
+                    const stats = profile.rpgStats || { vocal: 50, dance: 50 };
+                    
+                    // Warning logic for High Desire
                     let warningHtml = '';
                     if (profile.status && profile.status.desire > 80) {
                         warningHtml = `<div class="cte-rpg-warning-box"><span><i class="fa-solid fa-triangle-exclamation"></i> 欲望值过高</span><button class="cte-heartbeat-shortcut" onclick="window.CTEMap.switchView('heartbeat')"><i class="fa-solid fa-heart"></i></button></div>`;
                     }
-                    
-                    // 防御性代码：防止 role 缺失导致 split 报错
-                    const roleText = (profile.role && typeof profile.role === 'string') ? profile.role.split('、')[0] : '成员';
-                    const stats = profile.rpgStats || { vocal: 50, dance: 50 };
 
                     htmlContent += `
                     <div class="cte-rpg-card">
                         <div style="display:flex; gap:15px;">
                             <div class="cte-rpg-avatar-box"><img src="${profile.image}"><div class="cte-rpg-role-tag">${roleText}</div></div>
                             <div style="flex:1;">
-                                <div style="color:#fff; font-weight:bold; font-size:14px;">${name}</div>
-                                <div style="font-size:10px; color:#888;">${profile.personality}</div>
-                                <div class="cte-rpg-stat-row">
-                                     <div class="cte-rpg-stat-bar-container"><div class="label"><span>Vocal</span> <span>${stats.vocal}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${stats.vocal}%; background:#c5a065;"></div></div></div>
-                                     <div class="cte-rpg-stat-bar-container"><div class="label"><span>Dance</span> <span>${stats.dance}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${stats.dance}%; background:#c5a065;"></div></div></div>
+                                <div style="display:flex; justify-content:space-between;">
+                                    <div style="color:#fff; font-weight:bold; font-size:14px;">${name}</div>
+                                    <div style="font-size:10px; color:#888;">${profile.personality}</div>
                                 </div>
+                                
+                                <!-- 原有 Vocal/Dance 数据 (金色/C5A065) -->
+                                <div class="cte-rpg-stat-row">
+                                    <div class="cte-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>Vocal</span> <span>${stats.vocal}</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${stats.vocal}%; background:#c5a065;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="cte-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>Dance</span> <span>${stats.dance}</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${stats.dance}%; background:#c5a065;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 新增 欲望/好感 数据 (粉色/EC4899 & 红色/F43F5E) -->
+                                <div class="cte-rpg-stat-row" style="margin-top: 5px;">
+                                    <div class="cte-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>欲望</span> <span style="color:#ec4899;">${profile.status.desire}%</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${profile.status.desire}%; background:#ec4899; box-shadow:0 0 5px #ec4899;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="cte-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>好感</span> <span style="color:#f43f5e;">${profile.status.affection}%</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${profile.status.affection}%; background:#f43f5e;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 ${warningHtml}
                             </div>
                         </div>
@@ -171,7 +260,7 @@
             } else if (viewType === 'agency') {
                 htmlContent = '<div style="color:#888; text-align:center; padding:50px;">事务所运营功能正在开发中...<br>请先管理好现有艺人。</div>';
             } else {
-                // Dashboard (Default)
+                // Dashboard
                 htmlContent = `
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                         <div class="cte-rpg-card">
@@ -192,7 +281,6 @@
                 `;
             }
 
-            // 一次性插入 HTML
             container.innerHTML = htmlContent;
 
         } catch (e) {
@@ -201,7 +289,7 @@
         }
     };
 
-    // 2.3 渲染 Heartbeat 界面 (修复版)
+    // 2.3 渲染 Heartbeat 界面
     window.CTEMap.Heartbeat.renderGrid = function() {
         const container = document.querySelector('#cte-map-panel #cte-hb-activity-grid');
         if (!container) return;
@@ -269,7 +357,7 @@
         }
     };
 
-    // 2.4 视图切换 (逻辑加固)
+    // 2.4 视图切换
     window.CTEMap.switchView = function(viewName, btn) {
         console.log("[CTE Map] Switching to view:", viewName);
         
@@ -295,6 +383,7 @@
             }
             if (viewName === 'manager') {
                 window.CTEMap.scanForRPGStats();
+                window.CTEMap.readCharacterStatsFromChat(); // [已调用] 读取数据
                 window.CTEMap.renderRPGContent('dashboard'); 
             }
             if (viewName === 'heartbeat') {
@@ -408,7 +497,8 @@
             const htmlContent = await response.text();
             
             // 注入 HTML 内容
-            document.getElementById('cte-content-area').innerHTML = htmlContent;
+            const contentArea = document.getElementById('cte-content-area');
+            if(contentArea) contentArea.innerHTML = htmlContent;
             
             // 初始化各个模块
             bindMapEvents();
@@ -421,7 +511,8 @@
 
         } catch (e) {
             console.error("[CTE Map] Initialization Error:", e);
-            document.getElementById('cte-content-area').innerHTML = `<p style="padding:20px; color:white;">无法加载地图文件 (map.html)。<br>错误信息: ${e.message}</p>`;
+            const contentArea = document.getElementById('cte-content-area');
+            if(contentArea) contentArea.innerHTML = `<p style="padding:20px; color:white;">无法加载地图文件 (map.html)。<br>错误信息: ${e.message}</p>`;
         }
 
         // 绑定主面板事件
@@ -442,7 +533,10 @@
                     fixPanelPosition();
                     // 检查当前视图并刷新
                     if ($('#cte-view-schedule').hasClass('active')) window.CTEMap.refreshSchedule();
-                    if ($('#cte-view-manager').hasClass('active')) window.CTEMap.renderRPGContent('dashboard');
+                    if ($('#cte-view-manager').hasClass('active')) {
+                        window.CTEMap.readCharacterStatsFromChat();
+                        window.CTEMap.renderRPGContent('dashboard');
+                    }
                     if ($('#cte-view-heartbeat').hasClass('active')) window.CTEMap.Heartbeat.renderGrid();
                 });
             }
