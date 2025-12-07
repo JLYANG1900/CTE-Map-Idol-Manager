@@ -241,6 +241,8 @@
     width: 100%;
     aspect-ratio: 1 / 1;
     background-color: #e0e0e0;
+    /* [修复1] 增加默认背景图片，防止空白 */
+    background-image: url('https://files.catbox.moe/8z3pnp.png'); /* 默认背景或网格 */
     background-size: cover;
     background-position: center;
     position: relative;
@@ -260,19 +262,33 @@
     font-size: 11px;
     font-weight: 700;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transform: translate(-50%, -50%);
-    transition: transform 0.2s;
-    z-index: 10;
+    
+    /* [修复2] 移除 transform，改用 margin 校准，防止干扰 JS 拖拽计算 */
+    /* transform: translate(-50%, -50%);  <-- 已移除 */
+    margin-left: -15px; /* 近似宽度的一半 */
+    margin-top: -15px;  /* 近似高度的一半 */
+    
+    transition: none; /* 移除 transition 以确保拖拽跟手 */
+    
+    /* [修复2] 强制层级和点击事件 */
+    z-index: 100 !important;
+    pointer-events: auto !important;
 }
 
 .location:hover {
-    z-index: 20;
+    z-index: 120 !important;
     background-color: var(--accent-red) !important;
     color: white !important;
-    transform: translate(-50%, -50%) scale(1.1);
+    /* 仅在 hover 时放大，不改变位移 */
+    transform: scale(1.1);
 }
 
-.location.dragging { opacity: 0.8; cursor: grabbing; }
+.location.dragging { 
+    opacity: 0.8; 
+    cursor: grabbing; 
+    /* 拖拽时禁止任何 transform */
+    transform: none !important; 
+}
 
 /* National Map Cities */
 .national-city {
@@ -281,6 +297,7 @@
     flex-direction: column;
     align-items: center;
     cursor: grab;
+    /* 国家地图点通常不移动，保持居中逻辑 */
     transform: translate(-50%, -50%);
 }
 
@@ -522,6 +539,15 @@
 .cte-rpg-avatar-box {
     border: 1px solid var(--line-color);
     width: 60px; height: 60px;
+    overflow: hidden; /* 防止图片溢出 */
+}
+
+/* [修复3] 限制头像图片尺寸，防止撑破布局 */
+.cte-rpg-avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .cte-rpg-role-tag {
@@ -768,4 +794,82 @@ div#cte-toggle-btn {
 .popup-overlay {
     background: rgba(26, 26, 26, 0.6) !important; /* Darker dim for focus */
     backdrop-filter: blur(2px);
+}
+
+/* ==========================================
+   [修复4] HEARTBEAT MODAL & MISSING UI
+   ========================================== */
+.cte-hb-modal {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); /* 半透明遮罩 */
+    z-index: 25000; /* 确保在最上层 */
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+/* JS 通过 jQuery .addClass('active') 来显示 */
+.cte-hb-modal.active {
+    display: flex !important;
+}
+
+.cte-hb-modal-content {
+    background: #fff;
+    padding: 20px;
+    width: 320px;
+    max-width: 90%;
+    border-radius: 2px;
+    border-top: 4px solid var(--accent-red);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+}
+
+.cte-hb-member-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.cte-hb-member-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.cte-hb-member-item:hover {
+    background: #f0f0ed;
+}
+
+.cte-hb-member-item.selected {
+    background: #eadddd;
+    border-color: var(--accent-red);
+}
+
+.cte-hb-member-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 5px;
+    border: 1px solid var(--line-color);
+}
+
+.cte-hb-member-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+.cte-hb-member-item.selected .cte-hb-member-name {
+    color: var(--accent-red);
+    font-weight: 700;
 }
