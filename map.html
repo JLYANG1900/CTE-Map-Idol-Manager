@@ -1,33 +1,47 @@
+<!-- 引入字体 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <!-- 视图切换容器 -->
 <div id="cte-view-map" class="cte-view active">
     <div class="cte-wrapper">
-        <h1>京港市地图 - 档案模式</h1>
-        <h2>双击标签查看详情，长按拖拽标签移动</h2>
+        <header class="archive-header">
+            <div class="header-date">
+                <h1>京港市地理档案</h1>
+                <div class="time-badge">MAP DATA</div>
+            </div>
+            <div class="meta-block">
+                <span class="meta-primary">城市规划局</span> <span class="divider-v">|</span> <span class="meta-secondary">区域分布图</span>
+            </div>
+        </header>
 
         <div class="controls-bar">
             <!-- [原有功能保持] -->
-            <button class="cte-btn" onclick="window.CTEMap.switchView('national-map')">🗺️ 前往国家地图</button>
-            <span style="border-right: 1px solid #444; margin: 0 10px; height: 15px;"></span>
-            <span>更换背景：</span>
-            <button class="cte-btn" onclick="document.getElementById('bg-upload').click()">📂 选择图片...</button>
+            <button class="cte-btn" onclick="window.CTEMap.switchView('national-map')">🗺️ 切换国家战略图</button>
+            <span class="divider-v" style="margin: 0 10px;">|</span>
+            <button class="cte-btn" onclick="document.getElementById('bg-upload').click()">📂 替换底图附件...</button>
             <input type="file" id="bg-upload" accept="image/*" style="display:none;" onchange="window.CTEMap.changeBackground(this)">
-            <span style="margin-left:auto; font-size: 12px; color: #888;">提示：坐标位置会自动保存</span>
+            <span style="margin-left:auto; font-size: 11px; color: var(--text-muted); font-family: 'Inter';">COORDINATES AUTO-SAVED</span>
         </div>
 
-        <div class="map-container" id="cte-map-container">
-            <div class="location" id="gov" style="top: 60%; left: 50%;" data-popup="gov-popup"><span class="label">京港市政府</span></div>
-            <div class="location" id="villa" style="top: 15%; left: 25%;" data-popup="villa-popup"><span class="label">私人别墅</span></div>
-            <div class="location" id="dorm" style="top: 15%; left: 50%;" data-popup="dorm-popup"><span class="label">CTE宿舍</span></div>
-            <div class="location" id="PrivateClub" style="top: 15%; left: 75%;" data-popup="PrivateClub-popup"><span class="label">私人会所</span></div>
-            <div class="location" id="airport" style="top: 35%; left: 85%;" data-popup="airport-popup"><span class="label">机场</span></div>
-            <div class="location" id="port" style="top: 65%; left: 85%;" data-popup="port-popup"><span class="label">港口</span></div>
-            <div class="location" id="office4" style="top: 25%; left: 15%;" data-popup="office4-popup"><span class="label">隆桑集团</span></div>
-            <div class="location" id="office3" style="top: 35%; left: 10%;" data-popup="office3-popup"><span class="label">盛华集团</span></div>
-            <div class="location" id="office" style="top: 60%; left: 15%;" data-popup="office-popup"><span class="label">远洋集团</span></div>
-            <div class="location" id="TVstation" style="top: 65%; left: 20%;" data-popup="TVstation-popup"><span class="label">京港电视台</span></div>
-            <div class="location" id="office2" style="top: 70%; left: 15%;" data-popup="office2-popup"><span class="label">万城娱乐</span></div>
-            <div class="location" id="highschool" style="top: 85%; left: 30%;" data-popup="highschool-popup"><span class="label">京港第三高中</span></div>
-            <div class="location" id="other-places" style="top: 85%; left: 85%;" data-popup="other-places-popup"><span class="label">其他地点</span></div>
+        <div class="map-frame">
+            <div class="map-container" id="cte-map-container">
+                <div class="location" id="gov" style="top: 60%; left: 50%;" data-popup="gov-popup"><span class="label">京港市政府</span></div>
+                <div class="location" id="villa" style="top: 15%; left: 25%;" data-popup="villa-popup"><span class="label">私人别墅</span></div>
+                <div class="location" id="dorm" style="top: 15%; left: 50%;" data-popup="dorm-popup"><span class="label">CTE宿舍</span></div>
+                <div class="location" id="PrivateClub" style="top: 15%; left: 75%;" data-popup="PrivateClub-popup"><span class="label">私人会所</span></div>
+                <div class="location" id="airport" style="top: 35%; left: 85%;" data-popup="airport-popup"><span class="label">机场</span></div>
+                <div class="location" id="port" style="top: 65%; left: 85%;" data-popup="port-popup"><span class="label">港口</span></div>
+                <div class="location" id="office4" style="top: 25%; left: 15%;" data-popup="office4-popup"><span class="label">隆桑集团</span></div>
+                <div class="location" id="office3" style="top: 35%; left: 10%;" data-popup="office3-popup"><span class="label">盛华集团</span></div>
+                <div class="location" id="office" style="top: 60%; left: 15%;" data-popup="office-popup"><span class="label">远洋集团</span></div>
+                <div class="location" id="TVstation" style="top: 65%; left: 20%;" data-popup="TVstation-popup"><span class="label">京港电视台</span></div>
+                <div class="location" id="office2" style="top: 70%; left: 15%;" data-popup="office2-popup"><span class="label">万城娱乐</span></div>
+                <div class="location" id="highschool" style="top: 85%; left: 30%;" data-popup="highschool-popup"><span class="label">京港第三高中</span></div>
+                <div class="location" id="other-places" style="top: 85%; left: 85%;" data-popup="other-places-popup"><span class="label">其他地点</span></div>
+            </div>
         </div>
     </div>
 </div>
@@ -35,23 +49,28 @@
 <!-- [原有] 国家地图视图 -->
 <div id="cte-view-national-map" class="cte-view">
     <div class="cte-wrapper" style="width: 95%;">
-        <h1>权贵之心：国家战略地图</h1>
-        <p style="font-family: 'Zhi Mang Xing', cursive; color: #a0a0a0; margin-top: 0px; letter-spacing: 1px; font-size: 14px;">一张错综复杂的权力地图，一场没有硝烟的资本战争</p>
+        <header class="archive-header">
+            <div class="header-date">
+                <h1>国家战略版图</h1>
+                <div class="time-badge">CONFIDENTIAL</div>
+            </div>
+        </header>
         
         <div class="controls-bar" style="justify-content: center;">
-             <button class="cte-btn" onclick="window.CTEMap.switchView('map')">↩️ 返回京港市</button>
+             <button class="cte-btn" onclick="window.CTEMap.switchView('map')">↩️ 返回本市档案</button>
         </div>
 
         <!-- 国家地图容器 -->
-        <div class="national-map-container" id="national-game-map">
-            <!-- 城市将由 JS 注入 -->
+        <div class="map-frame">
+            <div class="national-map-container" id="national-game-map">
+                <!-- 城市将由 JS 注入 -->
+            </div>
         </div>
 
-        <div class="national-info-panel">
+        <div class="national-info-panel brief-box">
             <div id="national-info-content">
                 <h2><i class="fa-solid fa-map-location-dot"></i> 战略情报中心</h2>
-                <p>请点击地图上的城市图标以获取详细情报...</p>
-                <p style="font-size: 12px; color: #888; margin-top: 10px;">提示：点击“京港”图标可直接返回市内地图。</p>
+                <p>请点击地图上的城市图标以调取详细情报...</p>
             </div>
         </div>
     </div>
@@ -60,68 +79,82 @@
 <!-- [原有] 行程表视图 -->
 <div id="cte-view-schedule" class="cte-view">
     <div class="cte-wrapper">
-        <h1>当前行程安排</h1>
-        <h2 id="cte-schedule-status">正在读取最新状态...</h2>
+        <header class="archive-header">
+            <div class="header-date">
+                <h1>行程安排日志</h1>
+                <div class="time-badge">SCHEDULE</div>
+            </div>
+        </header>
         
         <div class="controls-bar">
-            <button class="cte-btn" onclick="window.CTEMap.refreshSchedule()">🔄 刷新行程 (读取 status_top)</button>
+            <button class="cte-btn" onclick="window.CTEMap.refreshSchedule()">🔄 同步最新状态 (status_top)</button>
+            <h2 id="cte-schedule-status" style="display:inline-block; font-size:12px; margin:0 0 0 10px; border:none; color:var(--text-secondary);">等待读取...</h2>
         </div>
 
-        <div id="cte-timeline-container" class="cte-timeline-container">
+        <div class="section-divider">
+            <span class="section-label"><i class="fa-regular fa-calendar"></i> Daily Tasks</span>
+        </div>
+
+        <div id="cte-timeline-container" class="cte-timeline-container dossier-list">
             <!-- 动态生成的时间轴内容 -->
-            <p style="text-align:center; color:#666; margin-top:50px;">暂无行程数据，请确保聊天记录中包含 &lt;status_top&gt; 标签。</p>
+            <p style="text-align:center; color:var(--text-muted); margin-top:50px;">暂无数据，请检查聊天记录标签。</p>
         </div>
     </div>
 </div>
 
 <!-- [新增] 偶像事务所 RPG 管理终端视图 -->
-<div id="cte-view-manager" class="cte-view" style="background-color: #0d0d0d;">
+<div id="cte-view-manager" class="cte-view">
     <div class="cte-rpg-container">
         <!-- 侧边栏 -->
         <div class="cte-rpg-sidebar">
             <div class="cte-rpg-logo"><span>M</span></div>
             <button class="cte-rpg-nav-btn active" data-subview="dashboard" title="概览"><i class="fa-solid fa-chart-pie"></i></button>
-            <button class="cte-rpg-nav-btn" data-subview="roster" title="艺人阵容"><i class="fa-solid fa-users"></i></button>
-            <button class="cte-rpg-nav-btn" data-subview="agency" title="事务所运营"><i class="fa-solid fa-building"></i></button>
+            <button class="cte-rpg-nav-btn" data-subview="roster" title="人员档案"><i class="fa-solid fa-users"></i></button>
+            <button class="cte-rpg-nav-btn" data-subview="agency" title="运营报表"><i class="fa-solid fa-building"></i></button>
         </div>
         
         <!-- 主内容区 -->
         <div class="cte-rpg-main">
-            <!-- 顶部 HUD -->
+            <!-- 顶部 HUD (Financial Report Style) -->
             <div class="cte-rpg-hud">
-                <div style="font-family:'Cinzel',serif; font-weight:bold; color:var(--cte-accent-gold); letter-spacing:2px;">IDOL OS v2.4</div>
+                <div class="hud-title">IDOL OPERATION SYSTEM <span style="font-size:10px; color:var(--accent-red);">v2.4</span></div>
                 <div class="cte-rpg-res-group">
                     <div class="cte-rpg-res-item">
-                        <div class="cte-rpg-res-icon" style="color:#DDB753"><i class="fa-solid fa-coins"></i></div>
-                        <div><span class="cte-rpg-res-val" id="rpg-val-funds">Loading...</span><span class="cte-rpg-res-label">预算</span></div>
+                        <span class="cte-rpg-res-label">BUDGET</span>
+                        <span class="cte-rpg-res-val" id="rpg-val-funds">---</span>
                     </div>
                     <div class="cte-rpg-res-item">
-                        <div class="cte-rpg-res-icon" style="color:#F472B6"><i class="fa-solid fa-heart"></i></div>
-                        <div><span class="cte-rpg-res-val" id="rpg-val-fans">Loading...</span><span class="cte-rpg-res-label">粉丝数</span></div>
+                        <span class="cte-rpg-res-label">FOLLOWERS</span>
+                        <span class="cte-rpg-res-val" id="rpg-val-fans">---</span>
                     </div>
                     <div class="cte-rpg-res-item">
-                        <div class="cte-rpg-res-icon" style="color:#60A5FA"><i class="fa-solid fa-fire"></i></div>
-                        <div><span class="cte-rpg-res-val" id="rpg-val-morale">High</span><span class="cte-rpg-res-label">团魂</span></div>
+                        <span class="cte-rpg-res-label">MORALE</span>
+                        <span class="cte-rpg-res-val" id="rpg-val-morale">---</span>
                     </div>
                 </div>
             </div>
 
             <!-- RPG 子视图内容容器 -->
             <div id="cte-rpg-content-area" style="flex:1; padding: 20px; overflow-y: auto;">
-                <!-- 动态注入 RPG 内容 -->
-                <div style="color: #666;">正在连接 SillyTavern 神经接口...</div>
+                <div style="color: var(--text-muted); text-align: center; margin-top: 20px;">正在建立神经接口链接...</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- [新增] Heartbeat 亲密互动视图 -->
-<div id="cte-view-heartbeat" class="cte-view" style="background-color: #FFF0F5;">
+<div id="cte-view-heartbeat" class="cte-view">
     <div class="cte-hb-container">
-        <div class="cte-hb-header">
-            <h1><i class="fa-solid fa-heart"></i> Special Interactions <i class="fa-solid fa-heart"></i></h1>
-            <p style="color: white; font-size: 12px; margin:0;">与成员进行深度互动的私密空间</p>
-        </div>
+        <header class="archive-header" style="border-bottom-color: var(--accent-red);">
+            <div class="header-date">
+                <h1>私人互动记录</h1>
+                <div class="time-badge" style="background:#fcecec; color:var(--accent-red);">PRIVATE</div>
+            </div>
+            <div class="meta-block">
+                <span class="meta-primary">机密档案</span> <span class="divider-v">|</span> <span class="meta-secondary">非请勿入</span>
+            </div>
+        </header>
+        
         <div class="cte-hb-content">
             <div class="cte-hb-grid" id="cte-hb-activity-grid">
                 <!-- JS Generated Activities -->
@@ -130,81 +163,85 @@
     </div>
 </div>
 
-<!-- 遮罩层 (保持不变) -->
+<!-- 遮罩层 -->
 <div class="popup-overlay" id="cte-overlay" onclick="window.CTEMap.closeAllPopups()"></div>
 
-<!-- 出行菜单 (保持不变 - DOM注入逻辑在JS中) -->
+<!-- 出行菜单 -->
 <div id="travel-menu-overlay" onclick="if(event.target === this) window.CTEMap.closeTravelMenu()">
-    <div class="travel-menu-box">
+    <div class="travel-menu-box paper-popup">
         <span class="close-btn" onclick="window.CTEMap.closeTravelMenu()">&times;</span>
-        <div id="travel-title" style="color:#e0c5a1; margin-bottom:20px;">前往目的地</div>
+        <div class="popup-header">
+            <h3>出行申请单</h3>
+        </div>
+        <div id="travel-title" class="popup-subtitle">前往目的地</div>
         <div id="travel-content" class="travel-options"></div>
     </div>
 </div>
 
-<!-- 参与者选择弹窗 (原有) -->
-<div id="cte-participant-popup" class="cte-popup" style="max-width: 400px;">
+<!-- 参与者选择弹窗 -->
+<div id="cte-participant-popup" class="cte-popup paper-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
-    <h3>👥 选择参与人员</h3>
-    <p style="font-size:12px; color:#888; margin-bottom:10px;">请勾选参与此行程的成员：</p>
+    <div class="popup-header"><h3>人员调动名录</h3></div>
+    <p class="popup-instruction">请勾选本次行程随行人员：</p>
     
     <div id="cte-participant-list" class="participant-grid">
-        <!-- JS 动态生成复选框 -->
+        <!-- JS Generated -->
     </div>
     
-    <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px;">
-        <p style="font-size:12px; color:#aaa; margin-bottom:5px;">其他人员 (选填):</p>
-        <input type="text" id="participant-custom" class="travel-input" placeholder="输入其他名字..." style="width:90%;">
+    <div class="form-group">
+        <label class="popup-instruction">编外人员 (可选):</label>
+        <input type="text" id="participant-custom" class="travel-input" placeholder="输入姓名...">
     </div>
 
-    <div style="text-align:center; margin-top:15px; display:flex; gap:10px; justify-content:center;">
-        <button class="cte-btn" onclick="window.CTEMap.proceedToLocationSelection()" style="background:#b38b59; color:#1a1a1a;">📍 选择地点</button>
-        <button class="cte-btn" onclick="window.CTEMap.closeAllPopups()" style="border-color:#666; color:#888;">取消</button>
+    <div class="popup-actions">
+        <button class="cte-btn primary" onclick="window.CTEMap.proceedToLocationSelection()">📍 确认地点</button>
+        <button class="cte-btn" onclick="window.CTEMap.closeAllPopups()">取消</button>
     </div>
 </div>
 
-<!-- [新增] Heartbeat 专属多选弹窗 -->
+<!-- Heartbeat 多选弹窗 -->
 <div id="cte-hb-modal" class="cte-hb-modal">
-    <div class="cte-hb-modal-content">
-        <h2 id="cte-hb-modal-title" style="margin: 0 0 10px 0;">分配成员</h2>
-        <p style="color: #666; font-size: 0.9rem;">请选择要参与互动的偶像（可多选）</p>
+    <div class="cte-hb-modal-content paper-popup">
+        <div class="popup-header"><h3>指定互动对象</h3></div>
+        <p class="popup-instruction">选择参与人员（可多选）</p>
         <div class="cte-hb-member-list" id="cte-hb-member-list">
-            <!-- JS Generated Members -->
+            <!-- JS Generated -->
         </div>
-        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-            <button class="cte-hb-assign-button" id="cte-hb-confirm-btn" onclick="window.CTEMap.Heartbeat.confirmAssignment()">确认安排</button>
-            <button class="cte-hb-close-button" onclick="window.CTEMap.Heartbeat.closeModal()">取消</button>
+        <div class="popup-actions">
+            <button class="cte-btn primary" id="cte-hb-confirm-btn" onclick="window.CTEMap.Heartbeat.confirmAssignment()">确认执行</button>
+            <button class="cte-btn" onclick="window.CTEMap.Heartbeat.closeModal()">取消</button>
         </div>
     </div>
 </div>
 
-<!-- 自定义地点弹窗 (原有) -->
-<div id="other-places-popup" class="cte-popup">
+<!-- 自定义地点弹窗 -->
+<div id="other-places-popup" class="cte-popup paper-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
-    <h3>🗺️ 自定义目的地</h3>
-    <p>请输入您想前往的任意地点：</p>
-    <div style="text-align: center;">
-        <input type="text" id="custom-destination-input" class="travel-input" style="width: 90%; margin-top:10px;" placeholder="例如：海边">
-        <button class="cte-btn" onclick="window.CTEMap.goToCustomDestination()">🚀 前往</button>
+    <div class="popup-header"><h3>特殊目的地申请</h3></div>
+    <div style="text-align: center; padding: 10px;">
+        <input type="text" id="custom-destination-input" class="travel-input" style="width: 100%;" placeholder="请输入地点名称...">
+        <button class="cte-btn primary" style="margin-top:15px;" onclick="window.CTEMap.goToCustomDestination()">🚀 立即前往</button>
     </div>
 </div>
 
-<!-- 宿舍弹窗 (原有) -->
-<div id="dorm-popup" class="cte-popup">
+<!-- 宿舍弹窗 -->
+<div id="dorm-popup" class="cte-popup paper-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
-    <h3>🏠 CTE男团宿舍</h3>
-    <p>坐落在北区别墅区中的CTE男团宿舍，安保和私密性都是顶级。</p>
-    <img src="https://files.catbox.moe/qn281x.JPG" class="popup-image">
-    <div style="text-align: center;">
-        <button class="cte-btn" onclick="window.CTEMap.showPopup('dorm-detail-popup')">🚪 宿舍内部</button>
-        <button class="cte-btn" onclick="window.CTEMap.openTravelMenu('CTE男团宿舍')">🚀 前往</button>
+    <div class="popup-header"><h3>CTE 宿舍</h3></div>
+    <p class="popup-desc">北区别墅区，最高级别安保与私密性。</p>
+    <div class="photo-frame">
+        <img src="https://files.catbox.moe/qn281x.JPG" class="popup-image">
+    </div>
+    <div class="popup-actions">
+        <button class="cte-btn" onclick="window.CTEMap.showPopup('dorm-detail-popup')">📂 内部结构图</button>
+        <button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('CTE男团宿舍')">🚀 前往</button>
     </div>
 </div>
 
-<!-- 宿舍详情 (原有) -->
-<div id="dorm-detail-popup" class="cte-popup">
+<!-- 宿舍详情 -->
+<div id="dorm-detail-popup" class="cte-popup paper-popup">
     <span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span>
-    <h3>🛋️ 宿舍内部</h3>
+    <div class="popup-header"><h3>宿舍内部构造</h3></div>
     <div class="interior-container">
         <img src="https://files.catbox.moe/40ygiw.JPG" class="interior-image">
         <div class="floor-nav">
@@ -216,22 +253,22 @@
             <button class="floor-btn" onclick="window.CTEMap.openSubMenu('一楼：生活与休闲区', ['前院与玄关', '客厅/公共休息区', '开放式厨房与餐厅', '储藏室与洗衣房', '后院与露天泳池'])">6. 一楼：生活与休闲区</button>
         </div>
         <div id="interior-sub-menu" class="sub-menu-overlay">
-            <div id="sub-menu-title" style="color:#b38b59; font-size:20px; margin-bottom:20px;"></div>
+            <div id="sub-menu-title" class="popup-subtitle" style="color:#fff;"></div>
             <div id="sub-menu-content" class="sub-menu-grid"></div>
-            <div class="sub-menu-close" style="margin-top:20px; cursor:pointer;" onclick="window.CTEMap.closeSubMenu()">[ 关闭菜单 ]</div>
+            <div class="sub-menu-close" onclick="window.CTEMap.closeSubMenu()">[ 收起菜单 ]</div>
         </div>
     </div>
 </div>
 
-<!-- 其他地点 (原有) -->
-<div id="office-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏢 远洋集团</h3><p>主营航运、大宗商品与投资的家族企业。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('远洋集团')">🚀 前往</button></div></div>
-<div id="villa-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏰 私人别墅</h3><p>你自己位于京港北区的一栋独栋别墅。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('私人别墅')">🚀 前往</button></div></div>
-<div id="office2-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>☕ 万城娱乐</h3><p>国内最大的娱乐产业集团之一。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('万城娱乐')">🚀 前往</button></div></div>
-<div id="office3-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏢 盛华集团</h3><p>老牌实业集团，在本地拥有深厚根基。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('盛华集团')">🚀 前往</button></div></div>
-<div id="office4-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏢 隆桑集团</h3><p>京港市的新兴科技巨头。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('隆桑集团')">🚀 前往</button></div></div>
-<div id="highschool-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏫 京港第三高中</h3><p>京港市著名的重点高中。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('京港第三高中')">🚀 前往</button></div></div>
-<div id="gov-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🏛️ 京港市政府</h3><p>城市行政中心。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('京港市政府')">🚀 前往</button></div></div>
-<div id="PrivateClub-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>🍷 私人会所</h3><p>仅限会员进入的高级会所，隐秘性极高。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('私人会所')">🚀 前往</button></div></div>
-<div id="TVstation-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>📺 京港电视台</h3><p>城市媒体中心，众多节目的录制现场。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('京港电视台')">🚀 前往</button></div></div>
-<div id="airport-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>✈️ 机场</h3><p>连接京港与世界的交通枢纽。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('机场')">🚀 前往</button></div></div>
-<div id="port-popup" class="cte-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><h3>⚓ 港口</h3><p>繁忙的国际货运港口。</p><div style="text-align:center"><button class="cte-btn" onclick="window.CTEMap.openTravelMenu('港口')">🚀 前往</button></div></div>
+<!-- 其他地点 (批量应用样式) -->
+<div id="office-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>远洋集团</h3></div><p class="popup-desc">主营航运、大宗商品与投资的家族企业。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('远洋集团')">🚀 前往</button></div></div>
+<div id="villa-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>私人别墅</h3></div><p class="popup-desc">你位于京港北区的独栋资产。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('私人别墅')">🚀 前往</button></div></div>
+<div id="office2-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>万城娱乐</h3></div><p class="popup-desc">国内最大的娱乐产业集团之一。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('万城娱乐')">🚀 前往</button></div></div>
+<div id="office3-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>盛华集团</h3></div><p class="popup-desc">老牌实业集团，本地根基深厚。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('盛华集团')">🚀 前往</button></div></div>
+<div id="office4-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>隆桑集团</h3></div><p class="popup-desc">京港市的新兴科技巨头。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('隆桑集团')">🚀 前往</button></div></div>
+<div id="highschool-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>京港第三高中</h3></div><p class="popup-desc">市重点高中。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('京港第三高中')">🚀 前往</button></div></div>
+<div id="gov-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>京港市政府</h3></div><p class="popup-desc">城市行政中心。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('京港市政府')">🚀 前往</button></div></div>
+<div id="PrivateClub-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>私人会所</h3></div><p class="popup-desc">仅限会员进入的高级社交场所。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('私人会所')">🚀 前往</button></div></div>
+<div id="TVstation-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>京港电视台</h3></div><p class="popup-desc">城市媒体中心，节目录制现场。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('京港电视台')">🚀 前往</button></div></div>
+<div id="airport-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>机场</h3></div><p class="popup-desc">连接世界的交通枢纽。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('机场')">🚀 前往</button></div></div>
+<div id="port-popup" class="cte-popup paper-popup"><span class="close-btn" onclick="window.CTEMap.closeAllPopups()">&times;</span><div class="popup-header"><h3>港口</h3></div><p class="popup-desc">繁忙的国际货运港口。</p><div class="popup-actions"><button class="cte-btn primary" onclick="window.CTEMap.openTravelMenu('港口')">🚀 前往</button></div></div>
