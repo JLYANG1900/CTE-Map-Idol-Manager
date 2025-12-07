@@ -241,8 +241,7 @@
     width: 100%;
     aspect-ratio: 1 / 1;
     background-color: #e0e0e0;
-    /* [修复1] 增加默认背景图片，防止空白 */
-    background-image: url('https://files.catbox.moe/8z3pnp.png'); /* 默认背景或网格 */
+    background-image: url('https://files.catbox.moe/8z3pnp.png');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -250,6 +249,7 @@
     border: 1px solid var(--text-primary);
 }
 
+/* [修复重点 1] 地图定位样式优化 */
 .location {
     position: absolute;
     cursor: grab;
@@ -263,31 +263,29 @@
     font-weight: 700;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     
-    /* [修复2] 移除 transform，改用 margin 校准，防止干扰 JS 拖拽计算 */
-    /* transform: translate(-50%, -50%);  <-- 已移除 */
-    margin-left: -15px; /* 近似宽度的一半 */
-    margin-top: -15px;  /* 近似高度的一半 */
+    /* 核心修复：使用 transform 居中，替代负 margin */
+    /* 这样 JS 获取的 offsetLeft 和鼠标点击坐标判定就能统一了 */
+    transform: translate(-50%, -50%);
+    margin: 0 !important;
     
-    transition: none; /* 移除 transition 以确保拖拽跟手 */
-    
-    /* [修复2] 强制层级和点击事件 */
     z-index: 100 !important;
     pointer-events: auto !important;
+    transition: transform 0.1s;
 }
 
 .location:hover {
     z-index: 120 !important;
     background-color: var(--accent-red) !important;
     color: white !important;
-    /* 仅在 hover 时放大，不改变位移 */
-    transform: scale(1.1);
+    /* 保持位移，仅放大 */
+    transform: translate(-50%, -50%) scale(1.1);
 }
 
 .location.dragging { 
     opacity: 0.8; 
     cursor: grabbing; 
-    /* 拖拽时禁止任何 transform */
-    transform: none !important; 
+    /* 拖拽时由 JS 控制 left/top，保持居中转换 */
+    transform: translate(-50%, -50%) !important;
 }
 
 /* National Map Cities */
@@ -297,7 +295,6 @@
     flex-direction: column;
     align-items: center;
     cursor: grab;
-    /* 国家地图点通常不移动，保持居中逻辑 */
     transform: translate(-50%, -50%);
 }
 
@@ -337,7 +334,7 @@
 }
 
 /* ==========================================
-   SCHEDULE / TIMELINE (Dossier List)
+   SCHEDULE / TIMELINE
    ========================================== */
 .section-divider {
     border-top: 1px solid var(--line-color);
@@ -363,7 +360,6 @@
     max-width: 700px;
 }
 
-/* Retargeting existing JS classes to new style */
 .cte-timeline-item {
     display: flex;
     flex-direction: column;
@@ -373,7 +369,7 @@
     position: relative;
 }
 
-.cte-timeline-item::before { display: none; /* Remove old vertical line */ }
+.cte-timeline-item::before { display: none; }
 
 .cte-timeline-time {
     position: static;
@@ -388,7 +384,7 @@
 }
 
 .cte-timeline-time::before {
-    content: "\f017"; /* Clock icon */
+    content: "\f017";
     font-family: "Font Awesome 6 Free";
     font-weight: 400;
     margin-right: 4px;
@@ -400,11 +396,6 @@
     border-left: none;
     padding: 0;
     width: 100%;
-}
-
-.cte-timeline-content:hover {
-    transform: none;
-    box-shadow: none;
 }
 
 .cte-schedule-title {
@@ -441,7 +432,7 @@
 }
 
 /* ==========================================
-   RPG MANAGER (Financial Report)
+   RPG MANAGER
    ========================================== */
 .cte-rpg-container {
     background: var(--bg-card) !important;
@@ -478,7 +469,6 @@
 
 .cte-rpg-main { background: var(--bg-card); }
 
-/* HUD Styling */
 .cte-rpg-hud {
     background: #fff;
     border-bottom: 2px solid var(--text-primary);
@@ -505,8 +495,6 @@
     justify-content: center;
 }
 
-.cte-rpg-res-icon { display: none; /* Hide icons in header for cleaner look */ }
-
 .cte-rpg-res-label {
     font-size: 9px;
     color: var(--text-muted);
@@ -522,7 +510,6 @@
     line-height: 1;
 }
 
-/* Cards (Personnel Files) */
 .cte-rpg-card {
     background: #fff;
     border: 1px solid var(--line-color);
@@ -539,10 +526,9 @@
 .cte-rpg-avatar-box {
     border: 1px solid var(--line-color);
     width: 60px; height: 60px;
-    overflow: hidden; /* 防止图片溢出 */
+    overflow: hidden;
 }
 
-/* [修复3] 限制头像图片尺寸，防止撑破布局 */
 .cte-rpg-avatar-box img {
     width: 100%;
     height: 100%;
@@ -557,22 +543,18 @@
     font-family: var(--font-sans);
 }
 
-/* Stat Bars Override */
 .cte-rpg-stat-bar-container .bar-bg {
     background: #eee;
     height: 4px;
 }
 
-/* JS injects inline colors. We use !important or attribute selectors to override */
 .cte-rpg-stat-bar-container .bar-fill {
     box-shadow: none !important;
 }
 
-/* Gold becomes Black */
 div[style*="background:#c5a065"], div[style*="background: rgb(197, 160, 101)"] {
     background-color: var(--text-primary) !important;
 }
-/* Pink becomes Red */
 div[style*="background:#ec4899"], div[style*="background: rgb(236, 72, 153)"] {
     background-color: var(--accent-red) !important;
 }
@@ -582,14 +564,13 @@ span[style*="color:#ec4899"], span[style*="color: rgb(236, 72, 153)"] {
 span[style*="color:#f43f5e"] { color: var(--accent-red) !important; }
 div[style*="background:#f43f5e"] { background-color: var(--accent-red) !important; }
 
-/* Dashboard List */
 .cte-rpg-card ul li {
     border-bottom: 1px dashed var(--line-color) !important;
     color: var(--text-secondary) !important;
 }
 
 /* ==========================================
-   HEARTBEAT VIEW (Confidential Log)
+   HEARTBEAT VIEW
    ========================================== */
 #cte-view-heartbeat {
     background-color: var(--bg-card) !important;
@@ -665,7 +646,7 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
 .paper-popup {
     background-color: #fff !important;
     border: 1px solid #ccc !important;
-    border-top: 4px solid var(--accent-red) !important; /* Red top border like index card */
+    border-top: 4px solid var(--accent-red) !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
     color: var(--text-primary) !important;
     border-radius: 2px;
@@ -701,7 +682,6 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
     padding-top: 15px;
 }
 
-/* Interior Menu */
 .sub-menu-overlay {
     background: rgba(255, 255, 255, 0.95) !important;
     color: var(--text-primary);
@@ -720,7 +700,6 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
 
 .sub-menu-close { color: var(--text-muted); }
 
-/* Character Detail in Popup */
 .character-room-detail {
     border: 1px solid var(--line-color);
     background: #f9f9f7;
@@ -750,14 +729,11 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
 }
 .room-description p { color: var(--text-secondary); }
 
-/* User Avatar */
 .user-portrait::before {
-    /* Change glow to subtle grey/red pulse */
     background: linear-gradient(45deg, #ccc, #fff, #ccc, #a84444);
 }
 .user-portrait::after { color: var(--accent-red); }
 
-/* Participant Checkboxes */
 .participant-item {
     background: white;
     border: 1px solid var(--line-color);
@@ -770,7 +746,6 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
 .participant-item label { color: var(--text-primary); }
 .cte-checkbox { accent-color: var(--accent-red); }
 
-/* Inputs */
 .travel-input {
     background: #fff !important;
     border: 1px solid var(--text-primary) !important;
@@ -780,9 +755,8 @@ div[style*="background:#f43f5e"] { background-color: var(--accent-red) !importan
 }
 
 /* ==========================================
-   GLOBAL TOGGLE BUTTON (Override)
+   GLOBAL TOGGLE BUTTON
    ========================================== */
-/* The ID #cte-toggle-btn is injected by JS with inline gold background. */
 div#cte-toggle-btn {
     background-color: var(--accent-red) !important;
     border: 2px solid white !important;
@@ -790,14 +764,13 @@ div#cte-toggle-btn {
     color: white !important;
 }
 
-/* Overlay */
 .popup-overlay {
-    background: rgba(26, 26, 26, 0.6) !important; /* Darker dim for focus */
+    background: rgba(26, 26, 26, 0.6) !important;
     backdrop-filter: blur(2px);
 }
 
 /* ==========================================
-   [修复4] HEARTBEAT MODAL & MISSING UI
+   [修复重点 2] HEARTBEAT 模态框样式补全
    ========================================== */
 .cte-hb-modal {
     position: absolute;
@@ -810,7 +783,7 @@ div#cte-toggle-btn {
     align-items: center;
 }
 
-/* JS 通过 jQuery .addClass('active') 来显示 */
+/* 核心修复：添加 active 状态的 display 属性 */
 .cte-hb-modal.active {
     display: flex !important;
 }
@@ -851,9 +824,10 @@ div#cte-toggle-btn {
     background: #f0f0ed;
 }
 
+/* 修复：选中状态样式 */
 .cte-hb-member-item.selected {
     background: #eadddd;
-    border-color: var(--accent-red);
+    border: 1px solid var(--accent-red);
 }
 
 .cte-hb-member-avatar {
@@ -872,4 +846,37 @@ div#cte-toggle-btn {
 .cte-hb-member-item.selected .cte-hb-member-name {
     color: var(--accent-red);
     font-weight: 700;
+}
+
+/* 修复：添加缺失的按钮样式类，保持档案风格 */
+.cte-hb-assign-button {
+    background-color: var(--accent-red);
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    font-family: var(--font-sans);
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+.cte-hb-assign-button:hover {
+    background-color: #8a3636;
+}
+
+.cte-hb-close-button {
+    background-color: transparent;
+    border: 1px solid var(--line-color);
+    color: var(--text-secondary);
+    padding: 6px 15px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-left: 10px;
+}
+.cte-hb-close-button:hover {
+    background-color: #f0f0ed;
+    color: var(--text-primary);
 }
