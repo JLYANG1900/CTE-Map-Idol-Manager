@@ -1,368 +1,236 @@
+/* ==========================================================================
+   CTE MAP - EXECUTIVE ARCHIVE THEME (REMASTERED)
+   Based on "Entertainment Company Top Status Bar" Aesthetic
+   ========================================================================== */
 
-/* --- 扩展面板容器 --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;700&family=Playfair+Display:wght@700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+    /* Palette from reference */
+    --bg-body: #d4d4d4;         
+    --bg-card: #f9f9f7;         
+    --text-primary: #1a1a1a;    
+    --text-secondary: #555555;  
+    --text-muted: #888888;      
+    --accent-red: #a84444;      
+    --accent-gold: #c5a065;     /* Kept for RPG stats, but muted */
+    --line-color: #e0e0e0;      
+    --shadow-soft: 0 10px 30px rgba(0,0,0,0.1);
+    --shadow-sharp: 0 4px 12px rgba(0,0,0,0.08);
+    
+    /* Functional Colors */
+    --status-success: #4a7c59;
+    --status-warn: #d97706;
+}
+
+/* --- Main Panel Container --- */
 #cte-map-panel {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     
-    /* 默认桌面端样式 */
-    width: 760px;
+    width: 800px;
     height: 85vh;
     max-height: 900px;
     
-    background: #1a1a1a;
-    border: 2px solid #b38b59;
+    background: var(--bg-card);
+    border: 1px solid #ccc;
     z-index: 20000;
     display: none;
-    box-shadow: 0 0 50px rgba(0,0,0,0.9);
-    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+    border-radius: 4px; /* Slight rounding like a file folder */
     overflow: hidden; 
-    font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
 }
 
-/* 顶部标题栏 */
+/* --- Header / Drag Handle --- */
 #cte-drag-handle {
     width: 100%;
-    height: 40px;
-    background: #242424;
+    height: 50px;
+    background: #fff;
     cursor: default;
     display: flex;
-    justify-content: space-between; /* 改为两端对齐 */
+    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #b38b59;
-    color: #e0c5a1;
-    font-weight: bold;
+    border-bottom: 2px solid var(--text-primary); /* Strong archive line */
+    color: var(--text-primary);
     flex-shrink: 0;
     position: relative;
     z-index: 20003; 
-    padding: 0 15px; /* 增加内边距 */
+    padding: 0 20px;
     box-sizing: border-box;
 }
 
-/* 顶部导航按钮组 */
+#cte-drag-handle span:first-child {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* --- Navigation Buttons --- */
 .cte-nav-group {
     display: flex;
-    gap: 10px;
+    gap: 15px;
 }
 
 .cte-nav-btn {
     background: transparent;
     border: none;
-    color: #888;
+    color: var(--text-muted);
     cursor: pointer;
     font-family: 'Noto Serif SC', serif;
-    font-size: 14px;
-    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0;
     transition: all 0.3s;
+    position: relative;
 }
 
-.cte-nav-btn.active {
-    color: #e0c5a1;
-    border-bottom: 2px solid #b38b59;
+.cte-nav-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background-color: var(--accent-red);
+    transition: width 0.3s;
 }
 
 .cte-nav-btn:hover {
-    color: #e0c5a1;
+    color: var(--accent-red);
 }
 
-/* 内容区域 */
-#cte-content-area {
-    height: calc(100% - 40px);
+.cte-nav-btn.active {
+    color: var(--text-primary);
+}
+
+.cte-nav-btn.active::after {
     width: 100%;
-    position: relative; /* 改为 relative 以便绝对定位子视图 */
-    overflow: hidden; /* 隐藏溢出，由子视图处理滚动 */
-    background-color: #1a1a1a;
 }
 
-/* 视图容器 (地图/行程表) */
+/* --- Content Area & Views --- */
+#cte-content-area {
+    height: calc(100% - 50px);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--bg-card);
+}
+
 .cte-view {
     width: 100%;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
-    display: none; /* 默认隐藏 */
-    -webkit-overflow-scrolling: touch;
-}
-
-.cte-view.active {
-    display: block;
-}
-
-.cte-view::-webkit-scrollbar { width: 6px; display: block; }
-.cte-view::-webkit-scrollbar-track { background: #1a1a1a; }
-.cte-view::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-
-/* --- 弹窗样式 --- */
-.cte-popup {
     display: none;
-    position: absolute; 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    
-    width: 85%;
-    max-width: 500px;
-    max-height: 70vh;
-    
-    overflow-y: auto; 
-    background-color: #242424;
-    border: 1px solid #b38b59;
-    border-left: 5px solid #b38b59;
-    padding: 20px;
-    z-index: 20002;
-    box-shadow: 0 0 50px rgba(0,0,0,1); 
-    text-align: left;
+    background-color: var(--bg-card);
 }
+.cte-view.active { display: block; }
 
-.cte-popup::-webkit-scrollbar { width: 4px; }
-.cte-popup::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+/* Scrollbar styling */
+.cte-view::-webkit-scrollbar { width: 6px; }
+.cte-view::-webkit-scrollbar-track { background: #f0f0f0; }
+.cte-view::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
-/* --- 基础内容样式 --- */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap');
-
+/* --- Wrapper & Typography --- */
 .cte-wrapper {
-    color: #dcdcdc;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
+    padding: 20px;
     width: 100%;
     box-sizing: border-box;
 }
 
-.cte-wrapper h1, .cte-wrapper h2 {
-    font-family: 'Cormorant Garamond', serif;
-    text-align: center;
-    color: #e0c5a1;
-    margin: 5px 0;
-}
-.cte-wrapper h2 {
-    font-size: 14px;
-    font-style: italic;
-    color: #888;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
-    width: 100%;
-    margin-bottom: 15px;
+.cte-wrapper h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--text-primary);
+    margin: 10px 0 5px 0;
+    border-bottom: 3px solid var(--accent-red); /* Branding accent */
+    padding-bottom: 5px;
+    display: inline-block;
 }
 
+.cte-wrapper h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--line-color);
+    padding-bottom: 15px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* --- Controls Bar --- */
 .controls-bar {
-    background: #242424;
-    border: 1px solid #b38b59;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 4px;
+    background: #fff;
+    border: 1px solid var(--line-color);
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 2px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
-    color: #e0c5a1;
-    font-size: 14px;
+    color: var(--text-secondary);
+    font-size: 13px;
     width: 100%;
-    max-width: 700px;
+    max-width: 720px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
 }
 
+/* --- Buttons (Generic) --- */
 .cte-btn {
-    border: 1px solid #b38b59;
-    color: #e0c5a1;
-    background-color: transparent;
-    padding: 6px 12px;
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+    background-color: #fff;
+    padding: 6px 14px;
     border-radius: 2px;
     cursor: pointer;
     font-family: 'Noto Serif SC', serif;
-    transition: all 0.3s;
-    text-align: center;
-    display: inline-block;
-    font-size: 13px;
-}
-.cte-btn:hover { background-color: #b38b59; color: #1a1a1a; }
-
-/* ========================================== */
-/* === 行程表样式 (Timeline) === */
-/* ========================================== */
-
-.cte-timeline-container {
-    width: 100%;
-    max-width: 700px;
-    padding: 10px 20px;
-    box-sizing: border-box;
-}
-
-.cte-timeline-item {
-    display: flex;
-    margin-bottom: 2rem;
-    position: relative;
-    padding-left: 60px; /* 留出时间标签的位置 */
-}
-
-.cte-timeline-item:last-child {
-    margin-bottom: 4rem; /* 底部留白 */
-}
-
-/* 连接线 */
-.cte-timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 19px; /* 线的位置 */
-    top: 5px;
-    bottom: -35px; /* 连接到下一个 */
-    width: 2px;
-    background-color: #444; /* 深灰色线条 */
-    border-left: 1px dashed #b38b59; /* 金色虚线装饰 */
-}
-
-.cte-timeline-item:last-child::before {
-    display: none;
-}
-
-/* 时间标签 */
-.cte-timeline-time {
-    position: absolute;
-    left: -10px;
-    top: 0;
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
-    color: #b38b59; /* 金色文字 */
-    background: #1a1a1a;
-    padding: 2px 5px;
-    border: 1px solid #b38b59;
-    border-radius: 2px;
-    font-size: 14px;
-    width: 60px;
-    text-align: center;
-    z-index: 2;
-}
-
-/* 内容卡片 */
-.cte-timeline-content {
-    background: rgba(36, 36, 36, 0.8);
-    border: 1px solid #444;
-    border-left: 3px solid #b38b59; /* 左侧金色强调 */
-    border-radius: 4px;
-    padding: 15px;
-    width: 100%;
-    transition: all 0.3s ease-in-out;
-    position: relative;
-}
-
-.cte-timeline-content:hover {
-    transform: translateX(5px);
-    box-shadow: 0 0 15px rgba(179, 139, 89, 0.15);
-    border-color: #666;
-}
-
-.cte-schedule-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #e0c5a1;
-    margin: 0 0 8px 0;
-    font-family: 'Noto Serif SC', serif;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.cte-schedule-desc {
-    color: #a4a6a8;
-    font-size: 13px;
-    line-height: 1.5;
-    margin-bottom: 12px;
-}
-
-.cte-tag {
-    display: inline-block;
-    background-color: rgba(179, 139, 89, 0.2);
-    color: #b38b59;
-    padding: 2px 6px;
-    border-radius: 2px;
-    font-size: 11px;
-    margin-left: 8px;
-    border: 1px solid #b38b59;
-}
-
-/* 执行按钮 */
-.cte-exec-btn {
-    width: 100%;
-    padding: 5px;
     font-size: 12px;
-    border-top: 1px solid #444;
-    margin-top: 5px;
-    background: rgba(0,0,0,0.2);
-    color: #888;
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-}
-
-.cte-exec-btn:hover {
-    background: #b38b59;
-    color: #1a1a1a;
-}
-
-/* ========================================== */
-/* === 参与者选择弹窗样式 === */
-/* ========================================== */
-.participant-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 两列布局 */
-    gap: 8px;
-    margin-top: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 5px;
-}
-
-.participant-item {
-    display: flex;
-    align-items: center;
-    background: rgba(0,0,0,0.3);
-    padding: 5px 8px;
-    border: 1px solid #444;
-    border-radius: 3px;
-    cursor: pointer;
+    font-weight: 600;
     transition: all 0.2s;
+    text-align: center;
+    display: inline-block;
 }
 
-.participant-item:hover {
-    border-color: #b38b59;
-    background: rgba(179, 139, 89, 0.1);
+.cte-btn:hover {
+    background-color: var(--text-primary);
+    color: #fff;
 }
 
-.cte-checkbox {
-    margin-right: 8px;
-    accent-color: #b38b59; /* 金色复选框 */
-    cursor: pointer;
-}
-
-.participant-item label {
-    cursor: pointer;
-    font-size: 13px;
-    color: #dcdcdc;
-    flex: 1;
-}
-
-/* 地图容器 (保持原有样式) */
+/* ========================================== */
+/* === MAP STYLES === */
+/* ========================================== */
 .map-container {
     position: relative;
     width: 100%;
     max-width: 700px;
     aspect-ratio: 1 / 1;
     height: auto; 
-    
-    background-color: #242424;
+    background-color: #e0e0e0;
     background-image: url('https://files.catbox.moe/clwj2e.jpg');
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    border: 3px solid #b38b59;
-    box-shadow: 0 0 30px rgba(0,0,0,0.7);
-    overflow: hidden;
-    flex-shrink: 0; 
+    border: 4px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     margin-bottom: 50px;
-    touch-action: none;
+    /* Filter to make the map look slightly faded/vintage if desired */
+    /* filter: sepia(0.2) contrast(1.1); */
 }
 
 .location {
@@ -371,821 +239,386 @@
     transition: transform 0.2s ease;
     user-select: none;
     z-index: 10;
-    background-color: rgba(0, 0, 0, 0.85);
-    border: 1px solid #b38b59;
-    padding: 4px 8px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    white-space: nowrap;
-    transform: translate(-50%, -50%);
-    touch-action: none;
-}
-.location:active { cursor: grabbing; }
-.location:hover { z-index: 20; background-color: #b38b59; color: #1a1a1a !important; }
-.location.dragging { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); background-color: #e0c5a1; color: #000 !important; }
-.location .label { font-size: 12px; font-weight: bold; pointer-events: none; }
-
-.cte-popup h3 { color: #e0c5a1; border-bottom: 1px solid #555; padding-bottom: 10px; margin-top: 0; font-size: 18px; }
-.cte-popup p { font-size: 14px; line-height: 1.6; color: #dcdcdc; }
-
-.popup-image { width: 100%; height: auto; max-height: 200px; object-fit: cover; margin: 15px 0; border: 1px solid #444; display: block; }
-.popup-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 20001; }
-
-.interior-container { position: relative; width: 100%; margin-top: 15px; border: 1px solid #444; }
-.interior-image { width: 100%; height: auto; display: block; }
-.floor-nav { position: absolute; top: 50%; left: 5px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; z-index: 10; }
-.floor-btn { background-color: rgba(0,0,0,0.85); border: 1px solid #b38b59; color: #e0c5a1; padding: 4px 8px; cursor: pointer; text-align: left; font-size: 11px; }
-
-.sub-menu-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20; flex-direction: column; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; text-align: center; }
-.sub-menu-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; max-height: 80%; overflow-y: auto; }
-.sub-item-btn { background: transparent; border: 1px solid #666; color: #dcdcdc; padding: 6px; cursor: pointer; font-size: 12px; }
-
-#travel-menu-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20005; justify-content: center; align-items: center; }
-.travel-menu-box { position: relative; background: #242424; border: 1px solid #b38b59; padding: 20px; width: 85%; max-width: 300px; text-align: center; }
-.travel-input { width: 90%; padding: 8px; margin-bottom: 15px; background: #1a1a1a; border: 1px solid #b38b59; color: #dcdcdc; text-align: center; }
-
-/* Colors */
-#dorm { color: #81c784; } #office { color: #64b5f6; } #villa { color: #ba68c8; } #office2 { color: #e57373; }
-#office3 { color: #90caf9; } #office4 { color: #b39ddb; } #highschool { color: #ffcc80; } #gov { color: #ef9a9a; }
-#PrivateClub { color: #ce93d8; } #TVstation { color: #80cbc4; } #airport { color: #b0bec5; } #port { color: #a5d6a7; }
-#other-places { color: #ffe0b2; }
-
-/* ========================================== */
-/* === 角色房间资料卡片样式 === */
-/* ========================================== */
-
-.character-room-detail {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-    max-width: 400px;
-    padding: 10px;
-    padding-top: 15px;
-}
-
-/* 角色头像容器 */
-.character-portrait {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid #b38b59;
-    box-shadow: 0 0 20px rgba(179, 139, 89, 0.4);
-    flex-shrink: 0;
-}
-
-.character-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    transition: transform 0.3s ease;
-}
-
-.character-portrait:hover .character-image {
-    transform: scale(1.1);
-}
-
-/* 角色信息区域 */
-.character-info {
-    width: 100%;
-    background: rgba(36, 36, 36, 0.8);
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 12px 15px;
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 8px 0;
-    border-bottom: 1px solid #333;
-}
-
-.info-row:last-child {
-    border-bottom: none;
-}
-
-.info-label {
-    color: #b38b59;
-    font-weight: bold;
-    font-size: 13px;
-    min-width: 45px;
-    flex-shrink: 0;
-}
-
-.info-value {
-    color: #e0c5a1;
-    font-size: 13px;
-    text-align: right;
-    flex: 1;
-    line-height: 1.4;
-}
-
-/* 房间描述 */
-.room-description {
-    width: 100%;
-    background: rgba(26, 26, 26, 0.6);
-    border-left: 3px solid #b38b59;
-    padding: 10px 12px;
-    border-radius: 0 4px 4px 0;
-}
-
-.room-description p {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.6;
-    color: #aaa;
-    font-style: italic;
-}
-
-/* 操作按钮区域 */
-.action-buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    margin-top: 5px;
-}
-
-.action-buttons .cte-btn {
-    min-width: 120px;
-}
-
-.action-buttons .sub-item-btn {
-    font-size: 11px;
-    padding: 6px 12px;
-}
-
-/* 角色卡片悬停动画 */
-.character-info:hover {
-    border-color: #b38b59;
-    box-shadow: 0 0 15px rgba(179, 139, 89, 0.2);
-}
-
-/* ========================================== */
-/* === 用户自定义头像样式 === */
-/* ========================================== */
-
-/* 无头像时的占位符样式 */
-.character-portrait.no-avatar {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    cursor: pointer;
-}
-
-.avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.3s ease;
-}
-
-.avatar-placeholder:hover {
-    background: rgba(179, 139, 89, 0.1);
-}
-
-.placeholder-icon {
-    font-size: 36px;
-    opacity: 0.5;
-}
-
-.placeholder-text {
-    font-size: 10px;
-    color: #888;
-    text-align: center;
-}
-
-/* 头像上传区域 */
-.avatar-upload-section {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.avatar-upload-btn {
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-}
-
-.avatar-upload-btn input[type=file] {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 10;
-}
-
-.avatar-delete-btn {
-    background: transparent;
-    border: 1px solid #e57373 !important;
-    color: #e57373 !important;
-}
-
-.avatar-delete-btn:hover {
-    background: #e57373 !important;
-    color: #1a1a1a !important;
-}
-
-/* 用户头像特殊边框动画 */
-.user-portrait {
-    position: relative;
-}
-
-.user-portrait::before {
-    content: '';
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    right: -3px;
-    bottom: -3px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #b38b59, #e0c5a1, #b38b59, #8b6914);
-    background-size: 400% 400%;
-    z-index: -1;
-    animation: avatarGlow 3s ease infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.user-portrait:hover::before {
-    opacity: 1;
-}
-
-@keyframes avatarGlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* 用户头像提示标签 */
-.user-portrait::after {
-    content: '✨ 你';
-    position: absolute;
-    bottom: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: #b38b59;
-    white-space: nowrap;
-}
-
-
-/* ========================================== */
-/* === 国家地图相关样式 === */
-/* ========================================== */
-
-.national-map-container {
-    position: relative;
-    width: 100%;
-    max-width: 700px;
-    /* [修改] 锁定为 1:1 画幅 */
-    aspect-ratio: 1 / 1; 
-    background-color: #222;
-    border: 1px solid #888;
-    overflow: hidden;
-    display: block; /* 覆盖 grid */
-    margin-bottom: 20px;
     
-    /* 默认背景样式适配图片 */
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    /* 禁止默认触摸行为，方便拖拽 */
-    touch-action: none;
-}
-
-.national-city {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* [修改] 鼠标样式改为 grab */
-    cursor: grab;
-    transition: transform 0.3s ease, filter 0.3s ease;
+    /* New Marker Style: High contrast pin */
+    background-color: #fff;
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: 2px;
+    
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    font-size: 11px;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+    
     transform: translate(-50%, -50%);
-    user-select: none;
-    z-index: 50;
-    touch-action: none;
 }
 
-.national-city:active {
-    cursor: grabbing;
+.location:hover {
+    z-index: 20;
+    background-color: var(--text-primary);
+    color: #fff !important;
+    border-color: var(--text-primary);
 }
 
-/* 移除 :hover 的 transform 放大，避免干扰拖拽体验 */
-.national-city:hover {
-    /* transform: translate(-50%, -50%) scale(1.1); */
-    filter: drop-shadow(0 0 8px #d4b27a);
-    z-index: 100;
+/* ========================================== */
+/* === POPUPS (Sticky Notes/Files) === */
+/* ========================================== */
+.popup-overlay {
+    display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(26, 26, 26, 0.4); /* Darker dim */
+    backdrop-filter: blur(2px);
+    z-index: 20001;
 }
 
-.national-city i {
-    font-size: 24px;
-    color: #c0a062;
-    text-shadow: 0 0 4px #c0a062;
-    margin-bottom: 5px;
-    pointer-events: none; /* 防止图标干扰点击 */
+.cte-popup {
+    display: none;
+    position: absolute; 
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%; max-width: 500px; max-height: 70vh;
+    
+    /* Paper Card Style */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-top: 4px solid var(--accent-red); /* File accent */
+    
+    padding: 25px;
+    z-index: 20002;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    text-align: left;
+    color: var(--text-primary);
 }
 
-.national-city .name {
-    font-size: 12px;
-    color: #dcdcdc;
-    background: rgba(0,0,0,0.7);
-    padding: 2px 6px;
-    border-radius: 3px;
-    white-space: nowrap;
-    pointer-events: none;
-}
-
-.national-info-panel {
-    width: 100%;
-    max-width: 700px;
-    background: rgba(0,0,0,0.3);
-    border: 1px dashed #666;
-    padding: 20px;
-    color: #ccc;
-    min-height: 150px;
-    box-sizing: border-box;
-}
-
-.national-info-panel h2 {
-    font-size: 18px;
-    color: #d4b27a;
-    margin: 0 0 15px 0;
-    border-bottom: 1px solid #777;
+.cte-popup h3 {
+    color: var(--text-primary);
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    border-bottom: 1px solid var(--line-color);
     padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.cte-popup p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
     font-family: 'Noto Serif SC', serif;
 }
 
-.national-info-panel p {
-    margin: 0;
-    line-height: 1.7;
-    font-size: 14px;
+.popup-image {
+    width: 100%; height: auto; max-height: 200px; object-fit: cover; 
+    margin: 15px 0; 
+    border: 1px solid #ddd; 
+    padding: 4px; background: #fff; /* Photo frame effect */
 }
 
-.national-info-panel ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+/* ========================================== */
+/* === TIMELINE (Schedule) === */
+/* ========================================== */
+.cte-timeline-container {
+    width: 100%; max-width: 700px; padding: 10px 20px;
 }
 
-.national-info-panel li {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: flex-start;
+.cte-timeline-item {
+    display: flex; margin-bottom: 2rem; position: relative; padding-left: 80px;
 }
 
-/* --- 移动端 & 平板端 深度适配 (iPad/iPhone) --- */
-@media screen and (max-width: 1180px) {
-    #cte-map-panel {
-        width: 95vw;          /* 占满屏幕宽度 */
-        height: 90dvh;        /* 动态视口高度，防止 Safari 地址栏遮挡 */
-        max-height: none;     /* 取消最大高度限制，由 dvh 控制 */
-        
-        /* 确保居中 */
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
-    /* 让地图容器自适应，不要强制 700px */
-    .map-container, .national-map-container, .national-info-panel, .controls-bar, .cte-timeline-container {
-        width: 100%; 
-        max-width: 100%; /* 允许填满面板宽度 */
-    }
+/* Dashed connector line */
+.cte-timeline-item::before {
+    content: '';
+    position: absolute; left: 29px; top: 5px; bottom: -35px;
+    width: 1px;
+    border-left: 1px dashed #bbb;
+}
+.cte-timeline-item:last-child::before { display: none; }
 
-    /* 缩小地图上的标签，防止重叠 */
-    .location {
-        padding: 3px 6px;
-        border-width: 1px;
-    }
-    .location .label {
-        font-size: 11px;
-    }
-
-    .controls-bar {
-        padding: 5px;
-        gap: 5px;
-    }
-    
-    .cte-btn {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-
-    .cte-popup {
-        width: 90%;
-        padding: 15px;
-    }
-    
-    .cte-popup h3 {
-        font-size: 16px;
-    }
-
-    /* 移动端角色卡片适配 */
-    .character-room-detail {
-        max-width: 100%;
-        padding: 8px;
-        gap: 12px;
-    }
-
-    .character-portrait {
-        width: 120px;
-        height: 120px;
-    }
-
-    .character-info {
-        padding: 10px 12px;
-    }
-
-    .info-row {
-        padding: 6px 0;
-    }
-
-    .info-label {
-        font-size: 12px;
-    }
-
-    .info-value {
-        font-size: 12px;
-    }
-
-    .room-description p {
-        font-size: 11px;
-    }
-
-    .avatar-upload-section {
-        gap: 6px;
-    }
-
-    .placeholder-icon {
-        font-size: 28px;
-    }
-
-    .placeholder-text {
-        font-size: 9px;
-    }
-
-    .user-portrait::after {
-        font-size: 10px;
-        bottom: -20px;
-    }
+.cte-timeline-time {
+    position: absolute; left: 0; top: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: #e6e6e6;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    width: 70px;
+    text-align: center;
+    z-index: 2;
 }
 
-@media screen and (max-width: 480px) {
-    .character-portrait {
-        width: 100px;
-        height: 100px;
-    }
-
-    .info-row {
-        flex-direction: column;
-        gap: 3px;
-    }
-
-    .info-value {
-        text-align: left;
-    }
-
-    .avatar-upload-section {
-        flex-direction: column;
-    }
-    
-    .participant-grid {
-        grid-template-columns: 1fr;
-    }
+.cte-timeline-content {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-left: 3px solid var(--text-secondary); /* Default Neutral */
+    padding: 15px; width: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
 }
 
-/* ==========================================================================
-   [NEW] RPG MANAGER STYLES
-   ========================================================================== */
-.cte-rpg-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    background: #0d0d0d;
+.cte-timeline-content:hover {
+    transform: translateX(4px);
+    border-left-color: var(--accent-red);
+}
+
+.cte-schedule-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.cte-tag {
+    background-color: #fff;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
     font-family: 'Inter', sans-serif;
-    color: #F9F1D8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* RPG Sidebar */
+.cte-exec-btn {
+    width: 100%; padding: 6px; font-size: 11px;
+    border-top: 1px dashed #ddd; margin-top: 8px;
+    background: transparent; color: var(--text-muted);
+    cursor: pointer; transition: 0.2s; text-align: right;
+}
+.cte-exec-btn:hover { color: var(--accent-red); }
+
+/* ========================================== */
+/* === RPG MANAGER (Executive Report) === */
+/* ========================================== */
+.cte-rpg-container {
+    width: 100%; height: 100%; display: flex;
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* Sidebar */
 .cte-rpg-sidebar {
     width: 60px;
-    background: #121212;
-    border-right: 1px solid rgba(212, 175, 55, 0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 15px;
-    gap: 15px;
-    flex-shrink: 0;
+    background: #f0f0ed; /* Slightly darker than card */
+    border-right: 1px solid var(--line-color);
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 15px; gap: 15px; flex-shrink: 0;
 }
 
 .cte-rpg-logo {
-    width: 36px;
-    height: 36px;
-    border: 1px solid #c5a065;
-    transform: rotate(45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px; height: 36px;
+    border: 2px solid var(--text-primary);
+    display: flex; align-items: center; justify-content: center;
     margin-bottom: 20px;
-    box-shadow: 0 0 8px rgba(197, 160, 101, 0.2);
+    background: #fff;
 }
-
 .cte-rpg-logo span {
-    transform: rotate(-45deg);
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: bold;
-    color: #c5a065;
-    font-size: 18px;
+    font-family: 'Playfair Display', serif; font-weight: bold;
+    color: var(--text-primary); font-size: 20px;
 }
 
 .cte-rpg-nav-btn {
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    color: #555;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 4px;
+    width: 40px; height: 40px;
+    background: transparent; border: none;
+    color: #999; font-size: 18px;
+    cursor: pointer; transition: all 0.2s; border-radius: 4px;
 }
-
 .cte-rpg-nav-btn:hover, .cte-rpg-nav-btn.active {
-    color: #c5a065;
-    background: rgba(255,255,255,0.05);
+    color: var(--accent-red);
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* RPG Main */
-.cte-rpg-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+/* Main Area */
+.cte-rpg-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
 .cte-rpg-hud {
     height: 50px;
-    background: rgba(0,0,0,0.5);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    flex-shrink: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--line-color);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; flex-shrink: 0;
 }
 
-.cte-rpg-res-group { display: flex; gap: 20px; }
+.cte-rpg-res-group { display: flex; gap: 25px; }
 .cte-rpg-res-item { display: flex; gap: 8px; align-items: center; }
-.cte-rpg-res-icon { 
-    width: 24px; height: 24px; 
-    border-radius: 50%; 
-    background: #1a1a1a; 
-    border: 1px solid rgba(255,255,255,0.1); 
-    display: flex; align-items: center; justify-content: center; 
-    font-size: 12px;
-}
-.cte-rpg-res-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: bold; }
-.cte-rpg-res-label { font-size: 9px; text-transform: uppercase; color: #666; margin-left: 2px;}
 
-/* RPG Roster Grid */
+.cte-rpg-res-icon { 
+    color: var(--text-primary); font-size: 14px;
+}
+
+.cte-rpg-res-val { 
+    font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--text-primary);
+}
+.cte-rpg-res-label { 
+    font-size: 9px; text-transform: uppercase; color: var(--text-muted); 
+    font-family: 'Inter', sans-serif; letter-spacing: 0.5px;
+}
+
+/* Roster Cards (Personnel Files) */
 .cte-rpg-roster-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 15px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
 }
 
 .cte-rpg-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    padding: 15px;
-    position: relative;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 15px; position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     transition: all 0.3s;
 }
-
 .cte-rpg-card:hover {
-    border-color: #c5a065;
-    background: rgba(255,255,255,0.05);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+    border-color: #bbb;
 }
 
 .cte-rpg-avatar-box {
     width: 60px; height: 60px;
-    border: 1px solid #333;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    margin-bottom: 10px;
-    overflow: hidden;
+    border: 1px solid #eee;
+    margin-bottom: 10px; position: relative;
 }
-
-.cte-rpg-avatar-box img {
-    width: 100%; height: 100%; object-fit: cover;
-}
+.cte-rpg-avatar-box img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%); }
 
 .cte-rpg-role-tag {
-    position: absolute; bottom: 0; right: 0;
-    background: #000; color: #c5a065; 
-    font-family: 'JetBrains Mono', monospace; font-size: 9px; 
-    padding: 1px 4px; border-top: 1px solid #c5a065; border-left: 1px solid #c5a065;
+    position: absolute; bottom: -5px; right: -5px;
+    background: var(--text-primary); color: #fff;
+    font-family: 'Inter', sans-serif; font-size: 9px;
+    padding: 2px 6px; text-transform: uppercase;
 }
 
-.cte-rpg-stat-row { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.cte-rpg-stat-bar-container .label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 2px; display: flex; justify-content: space-between; }
-.cte-rpg-stat-bar-container .bar-bg { width: 100%; height: 3px; background: #222; }
-.cte-rpg-stat-bar-container .bar-fill { height: 100%; box-shadow: 0 0 5px currentColor; }
+/* Stats Bars */
+.cte-rpg-stat-row { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
+.cte-rpg-stat-bar-container .label {
+    font-size: 10px; color: var(--text-secondary); text-transform: uppercase; 
+    margin-bottom: 3px; display: flex; justify-content: space-between;
+    font-family: 'Inter', sans-serif;
+}
+.cte-rpg-stat-bar-container .bar-bg { width: 100%; height: 4px; background: #eee; }
+.cte-rpg-stat-bar-container .bar-fill { height: 100%; }
+
+/* Custom colors for stats */
+/* Vocal/Dance - Muted Gold */
+.bar-fill[style*="background:#c5a065"] { background: #b08d55 !important; }
+/* Desire - Muted Pink/Red */
+.bar-fill[style*="background:#ec4899"] { background: #d68c9e !important; box-shadow: none !important; }
+/* Affection - Rust Red */
+.bar-fill[style*="background:#f43f5e"] { background: var(--accent-red) !important; }
+
+/* Warning Box */
 .cte-rpg-warning-box {
     margin-top: 10px;
-    background: rgba(236, 72, 153, 0.1);
-    border: 1px solid #ec4899;
-    border-radius: 4px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #ec4899;
-    animation: pulseWarning 2s infinite;
+    background: #fff0f0; border: 1px solid #ffcccc;
+    color: var(--accent-red); font-family: 'Inter', sans-serif;
 }
 
-.cte-heartbeat-shortcut {
-    background: #ec4899;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px; height: 20px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 10px;
-}
-
-@keyframes pulseWarning {
-    0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4); }
-    70% { box-shadow: 0 0 0 4px rgba(236, 72, 153, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
-}
-
-/* ==========================================================================
-   [NEW] HEARTBEAT STYLE (PINK THEME)
-   ========================================================================== */
+/* ========================================== */
+/* === HEARTBEAT (Private Journal) === */
+/* ========================================== */
 .cte-hb-container {
-    width: 100%;
-    height: 100%;
-    background-color: #FFF0F5;
-    color: #333;
-    overflow-y: auto;
+    width: 100%; height: 100%;
+    background-color: #fcfcfc; /* Very light paper */
+    background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+    background-size: 20px 20px; /* Dot grid paper effect */
+    color: var(--text-primary);
 }
 
 .cte-hb-header {
-    background-color: #FFB6C1;
-    padding: 20px;
-    text-align: center;
-    border-bottom: 4px solid #FFD1DC;
+    background-color: #fff;
+    padding: 20px; text-align: center;
+    border-bottom: 1px solid #eee;
 }
 
 .cte-hb-header h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
-    color: #fff;
-    font-size: 2rem;
-    margin: 0 0 5px 0;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    font-family: 'Playfair Display', serif;
+    color: var(--accent-red);
+    font-size: 24px; border: none;
+    font-style: italic;
 }
+.cte-hb-header p { color: var(--text-muted); }
 
-.cte-hb-content { padding: 20px; }
-
-.cte-hb-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 15px;
-}
+.cte-hb-grid { gap: 20px; }
 
 .cte-hb-activity-card {
-    background-color: #fff;
-    border-radius: 12px;
-    padding: 15px;
-    border: 2px solid #FFD1DC;
-    text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 2px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    padding: 20px;
 }
-
 .cte-hb-activity-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(231, 84, 128, 0.15);
-    border-color: #FF69B4;
+    border-color: #f4c2c2; /* Soft pink border on hover */
+    transform: translateY(-3px);
 }
 
-.cte-hb-activity-icon {
-    font-size: 2rem;
-    color: #FF69B4;
-    margin-bottom: 10px;
-}
-
-.cte-hb-activity-name {
-    font-weight: bold;
-    color: #555;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.cte-hb-activity-desc {
-    font-size: 11px;
-    color: #888;
-    margin-bottom: 15px;
-    line-height: 1.4;
-    min-height: 2.8em;
-}
+.cte-hb-activity-icon { color: var(--accent-red); font-size: 24px; }
+.cte-hb-activity-name { font-family: 'Noto Serif SC', serif; font-size: 16px; margin-top: 10px; color: var(--text-primary); }
+.cte-hb-activity-desc { font-family: 'Inter', sans-serif; color: var(--text-secondary); }
 
 .cte-hb-btn {
-    padding: 6px 15px;
-    background-color: #FF69B4;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
-}
-.cte-hb-btn:hover { background-color: #E75480; }
-
-/* Heartbeat Modal Specifics */
-.cte-hb-modal {
-    display: none;
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 20005;
-    justify-content: center;
-    align-items: center;
-}
-.cte-hb-modal.active { display: flex; }
-
-.cte-hb-modal-content {
     background: #fff;
-    padding: 20px;
-    border-radius: 15px;
-    border: 4px solid #FFD1DC;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    color: #333;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    border-radius: 2px;
+    padding: 6px 16px;
+    font-family: 'Noto Serif SC', serif;
 }
+.cte-hb-btn:hover { background: var(--accent-red); color: #fff; }
 
-.cte-hb-member-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin: 15px 0;
-}
+/* ========================================== */
+/* === INTERIOR / SUBMENUS === */
+/* ========================================== */
+.interior-container { border: 1px solid #ccc; background: #fff; padding: 5px; }
+.sub-menu-overlay { background: rgba(255,255,255,0.95); color: var(--text-primary); }
+.sub-item-btn { border-color: #ccc; color: var(--text-primary); }
+.sub-item-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
 
-.cte-hb-member-item {
-    width: 60px;
-    cursor: pointer;
-    transition: transform 0.2s;
+/* Character Room Detail */
+.character-info {
+    background: #fff; border: 1px solid #ddd;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
-.cte-hb-member-item:hover { transform: scale(1.1); }
+.info-row { border-bottom-color: #eee; }
+.info-label { color: var(--accent-red); }
+.info-value { color: var(--text-primary); }
+.room-description {
+    background: #f9f9f9; border-left-color: var(--text-primary);
+}
+.room-description p { color: var(--text-secondary); font-style: normal; font-family: 'Noto Serif SC', serif;}
 
-.cte-hb-member-avatar {
-    width: 50px; height: 50px;
-    border-radius: 50%;
-    border: 2px solid #FFD1DC;
-    background-size: cover;
-    margin: 0 auto;
-}
-.cte-hb-member-item.selected .cte-hb-member-avatar {
-    border-color: #FF69B4;
-    box-shadow: 0 0 0 3px rgba(255,105,180,0.3);
-}
-.cte-hb-member-name {
-    font-size: 10px; margin-top: 4px; color: #666;
-}
-.cte-hb-member-item.selected .cte-hb-member-name { color: #FF69B4; font-weight: bold; }
+/* User Avatar */
+.character-portrait { border-color: var(--text-primary); box-shadow: none; }
+.user-portrait::before { display: none; } /* Remove neon glow */
+.user-portrait { border: 3px double var(--accent-red); }
+.user-portrait::after { color: var(--accent-red); bottom: -20px; font-weight: bold; }
 
-.cte-hb-assign-button {
-    background: #FF69B4; color: #fff; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;
+/* National Map specific fixes */
+.national-map-container {
+    background-color: #f0f0f0;
+    border: 4px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-.cte-hb-close-button {
-    background: #ccc; color: #fff; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;
+.national-city i { color: var(--text-primary); text-shadow: 0 0 5px #fff; }
+.national-city .name { background: #fff; color: var(--text-primary); border: 1px solid #ccc; font-family: 'Noto Serif SC', serif; }
+
+.national-info-panel {
+    background: #fff; border: 1px solid #ddd; color: var(--text-secondary);
 }
+.national-info-panel h2 { color: var(--text-primary); border-bottom-color: var(--accent-red); }
+
+/* --- Popups / Modals General --- */
+.travel-menu-box { background: #fff; border: 1px solid #999; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+#travel-title { color: var(--text-primary) !important; font-family: 'Playfair Display', serif; font-size: 18px; border-bottom: 2px solid var(--accent-red); padding-bottom: 10px;}
+.travel-input { background: #f9f9f9; border: 1px solid #ccc; color: var(--text-primary); }
+
+.participant-item { background: #f9f9f9; border-color: #ddd; }
+.participant-item:hover { border-color: var(--accent-red); background: #fff0f0; }
+.participant-item label { color: var(--text-primary); }
+.cte-checkbox { accent-color: var(--accent-red); }
+
+/* Close Button */
+.close-btn { color: #999; float: right; font-size: 24px; cursor: pointer; }
+.close-btn:hover { color: var(--accent-red); }
