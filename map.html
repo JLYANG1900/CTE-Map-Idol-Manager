@@ -18,7 +18,6 @@
         </header>
 
         <div class="controls-bar">
-            <!-- [原有功能保持] -->
             <button class="cte-btn" onclick="window.CTEMap.switchView('national-map')">🗺️ 切换国家战略图</button>
             <span class="divider-v" style="margin: 0 10px;">|</span>
             <button class="cte-btn" onclick="document.getElementById('bg-upload').click()">📂 替换底图附件...</button>
@@ -26,8 +25,10 @@
             <span style="margin-left:auto; font-size: 11px; color: var(--text-muted); font-family: 'Inter';">COORDINATES AUTO-SAVED</span>
         </div>
 
+        <!-- 地图容器外框 -->
         <div class="map-frame">
             <div class="map-container" id="cte-map-container">
+                <!-- 地点标签 -->
                 <div class="location" id="gov" style="top: 60%; left: 50%;" data-popup="gov-popup"><span class="label">京港市政府</span></div>
                 <div class="location" id="villa" style="top: 15%; left: 25%;" data-popup="villa-popup"><span class="label">私人别墅</span></div>
                 <div class="location" id="dorm" style="top: 15%; left: 50%;" data-popup="dorm-popup"><span class="label">CTE宿舍</span></div>
@@ -46,7 +47,7 @@
     </div>
 </div>
 
-<!-- [原有] 国家地图视图 -->
+<!-- 国家地图视图 -->
 <div id="cte-view-national-map" class="cte-view">
     <div class="cte-wrapper" style="width: 95%;">
         <header class="archive-header">
@@ -60,7 +61,6 @@
              <button class="cte-btn" onclick="window.CTEMap.switchView('map')">↩️ 返回本市档案</button>
         </div>
 
-        <!-- 国家地图容器 -->
         <div class="map-frame">
             <div class="national-map-container" id="national-game-map">
                 <!-- 城市将由 JS 注入 -->
@@ -76,7 +76,7 @@
     </div>
 </div>
 
-<!-- [原有] 行程表视图 -->
+<!-- 行程表视图 -->
 <div id="cte-view-schedule" class="cte-view">
     <div class="cte-wrapper">
         <header class="archive-header">
@@ -96,13 +96,12 @@
         </div>
 
         <div id="cte-timeline-container" class="cte-timeline-container dossier-list">
-            <!-- 动态生成的时间轴内容 -->
             <p style="text-align:center; color:var(--text-muted); margin-top:50px;">暂无数据，请检查聊天记录标签。</p>
         </div>
     </div>
 </div>
 
-<!-- [新增] 偶像事务所 RPG 管理终端视图 -->
+<!-- 偶像事务所 RPG 管理终端视图 -->
 <div id="cte-view-manager" class="cte-view">
     <div class="cte-rpg-container">
         <!-- 侧边栏 -->
@@ -134,7 +133,6 @@
                 </div>
             </div>
 
-            <!-- RPG 子视图内容容器 -->
             <div id="cte-rpg-content-area" style="flex:1; padding: 20px; overflow-y: auto;">
                 <div style="color: var(--text-muted); text-align: center; margin-top: 20px;">正在建立神经接口链接...</div>
             </div>
@@ -142,7 +140,7 @@
     </div>
 </div>
 
-<!-- [新增] Heartbeat 亲密互动视图 -->
+<!-- Heartbeat 亲密互动视图 -->
 <div id="cte-view-heartbeat" class="cte-view">
     <div class="cte-hb-container">
         <header class="archive-header" style="border-bottom-color: var(--accent-red);">
@@ -199,7 +197,7 @@
     </div>
 </div>
 
-<!-- Heartbeat 多选弹窗 -->
+<!-- Heartbeat 多选弹窗 (修复后的结构) -->
 <div id="cte-hb-modal" class="cte-hb-modal">
     <div class="cte-hb-modal-content paper-popup">
         <div class="popup-header"><h3>指定互动对象</h3></div>
@@ -208,8 +206,9 @@
             <!-- JS Generated -->
         </div>
         <div class="popup-actions">
-            <button class="cte-btn primary" id="cte-hb-confirm-btn" onclick="window.CTEMap.Heartbeat.confirmAssignment()">确认执行</button>
-            <button class="cte-btn" onclick="window.CTEMap.Heartbeat.closeModal()">取消</button>
+            <!-- 样式修复：使用了新的 class -->
+            <button class="cte-hb-assign-button" id="cte-hb-confirm-btn" onclick="window.CTEMap.Heartbeat.confirmAssignment()">确认执行</button>
+            <button class="cte-hb-close-button" onclick="window.CTEMap.Heartbeat.closeModal()">取消</button>
         </div>
     </div>
 </div>
