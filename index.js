@@ -108,6 +108,270 @@
     });
 
     // ==========================================
+    // [NEW] 2.0 合约通告模块 (Contracts Manager)
+    // ==========================================
+    window.CTEIdolManager.Contracts = {
+        pendingCard: null,
+        pendingRawContract: "",
+
+        TYPE_CONFIG: {
+            'movie': { css: 'cte-type-movie', badge: 'cte-badge-movie', label: 'Movie & TV' },
+            'music': { css: 'cte-type-music', badge: 'cte-badge-music', label: 'Music' },
+            'stage': { css: 'cte-type-stage', badge: 'cte-badge-stage', label: 'Stage' },
+            'variety': { css: 'cte-type-variety', badge: 'cte-badge-variety', label: 'Variety' },
+            'ad': { css: 'cte-type-ad', badge: 'cte-badge-ad', label: 'Ad' }
+        },
+
+        init: function() {
+            // No specific init needed, functions called on demand
+        },
+
+        // 从聊天记录中提取 <contracts> 块
+        getContractsContent: function() {
+            let context = stContext;
+            if (!context && window.SillyTavern) context = window.SillyTavern.getContext();
+            if (!context || !context.chat) return null;
+
+            for (let i = context.chat.length - 1; i >= 0; i--) {
+                const msg = context.chat[i].mes || "";
+                const match = msg.match(/<contracts>([\s\S]*?)<\/contracts>/i);
+                if (match) return match[1].trim();
+            }
+            return null;
+        },
+
+        detectType: function(text) {
+            text = text.toLowerCase();
+            if (text.includes('电影') || text.includes('电视剧') || text.includes('movie') || text.includes('tv') || text.includes('网剧')) return 'movie';
+            if (text.includes('唱片') || text.includes('music') || text.includes('歌') || text.includes('专辑') || text.includes('ost')) return 'music';
+            if (text.includes('舞台') || text.includes('stage') || text.includes('打歌') || text.includes('公演') || text.includes('唱跳')) return 'stage';
+            if (text.includes('综艺') || text.includes('variety') || text.includes('show') || text.includes('真人秀')) return 'variety';
+            if (text.includes('广告') || text.includes('ad') || text.includes('代言') || text.includes('大使')) return 'ad';
+            return 'movie'; // Default
+        },
+
+        parseAttributes: function(attrString) {
+            const attrs = [
+                { key: '歌艺', label: '歌艺', val: '-' },
+                { key: '舞蹈', label: '舞蹈', val: '-' },
+                { key: '口才', label: '口才', val: '-' },
+                { key: '表演', label: '表演', val: '-' }
+            ];
+            if (!attrString || attrString === '-') return attrs;
+            const cleanStr = attrString.replace(/，/g, ',').replace(/\//g, '/'); 
+            attrs.forEach(attr => {
+                const regex = new RegExp(`${attr.key}[:\\s]*([\\d/]+)`, 'i');
+                const match = cleanStr.match(regex);
+                if (match) attr.val = match[1];
+            });
+            return attrs;
+        },
+
+        // 渲染单个卡片 HTML
+        createCardHTML: function(data, index, rawString) {
+            const typeKey = this.detectType(data.type);
+            const style = this.TYPE_CONFIG[typeKey];
+            const attrs = this.parseAttributes(data.reqs);
+            const attrHtml = attrs.map(a => {
+                const isHigh = parseInt(a.val) > 80; 
+                return `<div class="cte-item-req-row"><span class="cte-item-req-label">${a.label}</span><span class="cte-item-req-val ${isHigh ? 'danger' : ''}">${a.val}</span></div>`;
+            }).join('');
+
+            const safeRawString = rawString.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+            return `
+                <div class="cte-agency-item ${style.css}" data-category="${typeKey}" id="cte-c-${index}">
+                    <div class="cte-item-stamp">AUTHORIZED</div>
+                    <div class="cte-item-header">
+                        <div class="cte-item-title-group">
+                            <h3>${data.name}</h3>
+                            <div class="cte-item-company">${data.company}</div>
+                        </div>
+                        <span class="cte-item-badge ${style.badge}">${data.job}</span>
+                    </div>
+                    <div class="cte-item-req-grid">${attrHtml}</div>
+                    <div class="cte-item-footer">
+                        <div>
+                            <div class="cte-item-payment">${data.pay}</div>
+                            <div class="cte-item-days">${data.duration}</div>
+                        </div>
+                        <button class="cte-item-sign-btn" onclick="window.CTEIdolManager.Contracts.openSignModal(this, '${safeRawString}')">签署合约</button>
+                    </div>
+                </div>
+            `;
+        },
+
+        // 渲染整个视图
+        renderView: function(container) {
+            const rawText = this.getContractsContent();
+            let listHtml = '';
+            let count = 0;
+            const today = new Date();
+            const dateStr = `${today.getMonth()+1}/${today.getDate()}`;
+            const funds = window.CTEIdolManager.RPG.state.funds.toLocaleString();
+
+            if (rawText) {
+                // Remove tags
+                const cleanText = rawText.replace(/<\/?contracts>/g, '');
+                // Regex for [Type|Name|Company|Job|Reqs|Pay|Duration]
+                // Supports both Chinese | and standard |
+                const pattern = /\[(?:通告|Contract)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\s*[\|｜]\s*(.*?)\]/g;
+                
+                let match;
+                while ((match = pattern.exec(cleanText)) !== null) {
+                    const data = {
+                        type: match[1].trim(),
+                        name: match[2].trim(),
+                        company: match[3].trim(),
+                        job: match[4].trim(),
+                        reqs: match[5].trim(),
+                        pay: match[6].trim(),
+                        duration: match[7].trim()
+                    };
+                    listHtml += this.createCardHTML(data, count++, match[0]);
+                }
+            }
+
+            if (listHtml === '') {
+                listHtml = '<div class="cte-agency-empty">暂无符合格式的通告<br>No Contracts Available</div>';
+            }
+
+            const html = `
+                <div class="cte-agency-scope cte-agency-container">
+                    <div class="cte-agency-card">
+                        <header class="cte-agency-header">
+                            <div class="cte-agency-title">
+                                <h1>通告接洽</h1>
+                            </div>
+                            <div class="cte-agency-meta">
+                                <div>AVAILABLE: ${count < 10 ? '0' + count : count}</div>
+                                <div>DATE: ${dateStr}</div>
+                            </div>
+                        </header>
+
+                        <div class="cte-agency-resource-bar">
+                            <div class="cte-agency-res-item">
+                                <i class="fa-solid fa-sack-dollar cte-agency-res-icon"></i>
+                                <span class="cte-agency-res-label">资金:</span>
+                                <span class="cte-agency-res-val">${funds}</span>
+                            </div>
+                        </div>
+
+                        <div class="cte-agency-tabs">
+                            <button class="cte-agency-tab-btn active" onclick="window.CTEIdolManager.Contracts.filter('all', this)">全部 / All</button>
+                            <button class="cte-agency-tab-btn" onclick="window.CTEIdolManager.Contracts.filter('movie', this)">影视 / Movie</button>
+                            <button class="cte-agency-tab-btn" onclick="window.CTEIdolManager.Contracts.filter('music', this)">唱片 / Music</button>
+                            <button class="cte-agency-tab-btn" onclick="window.CTEIdolManager.Contracts.filter('stage', this)">舞台 / Stage</button>
+                            <button class="cte-agency-tab-btn" onclick="window.CTEIdolManager.Contracts.filter('variety', this)">综艺 / Variety</button>
+                            <button class="cte-agency-tab-btn" onclick="window.CTEIdolManager.Contracts.filter('ad', this)">广告 / Ad</button>
+                        </div>
+
+                        <div class="cte-agency-list" id="cte-agency-list-container">
+                            ${listHtml}
+                        </div>
+                        
+                        <div style="margin-top: 15px; border-top: 2px solid var(--cte-agency-text-primary); padding-top:10px; opacity:0.6; font-size:10px; display:flex; justify-content:space-between;">
+                            <span>SYSTEM: READY</span>
+                            <span>SECURE CONNECTION</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 成员选择弹窗 (嵌入) -->
+                <div class="cte-agency-modal-overlay cte-agency-scope" id="cte-agency-sign-modal">
+                    <div class="cte-agency-modal-content">
+                        <div class="cte-agency-modal-title">ASSIGN MEMBER</div>
+                        <div class="cte-agency-modal-subtitle">请选择接取通告的成员</div>
+                        
+                        <div class="cte-agency-member-grid">
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('桑洛凡')">桑洛凡</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('秦述')">秦述</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('司洛')">司洛</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('鹿言')">鹿言</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('魏星泽')">魏星泽</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('周锦宁')">周锦宁</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('谌绪')">谌绪</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('孟明赫')">孟明赫</button>
+                            <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmSign('亓谢')">亓谢</button>
+                            <button class="cte-agency-select-btn full-width" onclick="window.CTEIdolManager.Contracts.confirmSign('CTE男团全员')">CTE男团全员</button>
+                        </div>
+
+                        <div style="margin-top: 8px; border-top: 1px dashed #ccc; padding-top: 8px;">
+                            <div style="font-size: 10px; color: var(--cte-agency-text-secondary); margin-bottom: 4px; text-align: left;">其他成员 / OTHER</div>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" id="cte-agency-custom-member" placeholder="输入姓名..." style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none;">
+                                <button class="cte-agency-select-btn" onclick="window.CTEIdolManager.Contracts.confirmCustomSign()" style="width: auto; padding: 6px 12px; background: #eee;">确认</button>
+                            </div>
+                        </div>
+
+                        <button class="cte-agency-close-btn" onclick="window.CTEIdolManager.Contracts.closeModal()">取消操作 / CANCEL</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        },
+
+        filter: function(category, btnElement) {
+            const buttons = document.querySelectorAll('.cte-agency-tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            const cards = document.querySelectorAll('.cte-agency-item');
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        },
+
+        openSignModal: function(btn, rawString) {
+            this.pendingCard = btn.closest('.cte-agency-item');
+            this.pendingRawContract = rawString;
+            document.getElementById('cte-agency-sign-modal').classList.add('active');
+        },
+
+        closeModal: function() {
+            document.getElementById('cte-agency-sign-modal').classList.remove('active');
+            this.pendingCard = null;
+            this.pendingRawContract = "";
+            const input = document.getElementById('cte-agency-custom-member');
+            if(input) input.value = '';
+        },
+
+        confirmSign: function(memberName) {
+            if (!this.pendingCard || !this.pendingRawContract) return;
+
+            // 1. Visual Feedback
+            this.pendingCard.classList.add('signed');
+
+            // 2. Send to SillyTavern
+            const message = `${memberName} 接取通告：${this.pendingRawContract}`;
+            if (stContext) {
+                stContext.executeSlashCommandsWithOptions(`/setinput ${message}`);
+            }
+
+            // 3. Close
+            this.closeModal();
+            // Optional: Close the whole panel after action?
+            // window.CTEIdolManager.closeAllPopups();
+        },
+
+        confirmCustomSign: function() {
+            const input = document.getElementById('cte-agency-custom-member');
+            const name = input.value.trim();
+            if (name) {
+                this.confirmSign(name);
+            } else {
+                input.style.borderColor = '#a84444';
+                setTimeout(() => input.style.borderColor = '#ddd', 500);
+            }
+        }
+    };
+
+
+    // ==========================================
     // 2. 核心功能函数
     // ==========================================
 
@@ -377,9 +641,11 @@
                     </div>`;
                 }
                 htmlContent += '</div>';
+                container.innerHTML = htmlContent;
 
             } else if (viewType === 'agency') {
-                htmlContent = '<div style="color:#888; text-align:center; padding:50px;">事务所运营功能正在开发中...<br>请先管理好现有艺人。</div>';
+                // 调用新的通告管理模块渲染
+                window.CTEIdolManager.Contracts.renderView(container);
             } else {
                 // ==========================
                 // Dashboard (Archive Card)
@@ -489,9 +755,8 @@
                         </div>
                     </div>
                 `;
+                container.innerHTML = htmlContent;
             }
-
-            container.innerHTML = htmlContent;
 
         } catch (e) {
             console.error("[CTE Idol Map] Error rendering RPG content:", e);
@@ -717,6 +982,7 @@
             loadSavedBg();
             window.CTEIdolManager.initNationalMap();
             window.CTEIdolManager.loadSavedNationalBg();
+            window.CTEIdolManager.Contracts.init(); // Init contracts module
             
             bindRPGEvents();
 
@@ -1382,6 +1648,7 @@
         $('#cte-idol-map-panel .cte-idol-popup').hide();
         window.CTEIdolManager.closeSubMenu();
         window.CTEIdolManager.Heartbeat.closeModal();
+        window.CTEIdolManager.Contracts.closeModal();
         window.CTEIdolManager.closeTravelMenu(isTravelMenuVisible);
     };
 
