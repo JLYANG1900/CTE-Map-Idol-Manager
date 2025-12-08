@@ -1684,3 +1684,45 @@
     text-decoration: underline; font-size: 10px;
     color: var(--cte-agency-text-muted); cursor: pointer;
 }
+
+/* ==========================================================================
+   [FIX] Archive Card Scrolling & Style Isolation
+   ========================================================================== */
+
+/* 1. 强制移除卡片内所有元素的文字阴影 */
+.cte-archive-card,
+.cte-archive-card * {
+    text-shadow: none !important; /* 使用 !important 覆盖 SillyTavern 的全局深色主题阴影 */
+}
+
+/* 2. 启用垂直滚动并美化滚动条 */
+.cte-archive-card {
+    /* ...原有样式 (保持 width, height, background 等)... */
+    
+    /* 启用垂直滚动 */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    /* 优化内边距，防止内容紧贴滚动条 */
+    padding-right: 24px; /* 根据原有 padding 微调 */
+}
+
+/* 3. 滚动条美化 (适配浅色纸张背景) */
+.cte-archive-card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cte-archive-card::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05); /* 极淡的灰色轨道 */
+    border-radius: 3px;
+}
+
+.cte-archive-card::-webkit-scrollbar-thumb {
+    background-color: #d1d1d1; /* 浅灰色滑块 */
+    border-radius: 3px;
+    border: 1px solid #f9f9f7; /* 增加一点描边使其与背景融合 */
+}
+
+.cte-archive-card::-webkit-scrollbar-thumb:hover {
+    background-color: #b0b0b0;
+}
