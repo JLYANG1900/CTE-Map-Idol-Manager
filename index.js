@@ -67,18 +67,19 @@
         ],
 
         // 角色档案
+        // [修改说明] rpgStats 已更新为 { vocal, dance, eloquence, acting }，默认值为 0，数据将从 MVU 读取
         characterProfiles: {
-            '魏月华': { image: 'https://files.catbox.moe/auqnct.jpeg', age: 27, role: '万城娱乐CEO', personality: '严肃、冷酷', rpgStats: { vocal: 60, dance: 60, stamina: 90 }, status: { desire: 0, affection: 0 } },
-            '秦述': { image: 'https://files.catbox.moe/c2khbl.jpeg', age: 24, role: '队长、主舞', personality: '沉默、清冷', rpgStats: { vocal: 88, dance: 96, stamina: 92 }, status: { desire: 0, affection: 0 } },
-            '司洛': { image: 'https://files.catbox.moe/pohz52.jpeg', age: 24, role: '全能ACE', personality: '慵懒、随性', rpgStats: { vocal: 92, dance: 95, stamina: 88 }, status: { desire: 0, affection: 0 } },
-            '鹿言': { image: 'https://files.catbox.moe/parliq.jpeg', age: 23, role: '主唱担当', personality: '温柔、谦逊', rpgStats: { vocal: 96, dance: 85, stamina: 85 }, status: { desire: 0, affection: 0 } },
-            '魏星泽': { image: 'https://files.catbox.moe/syo0ze.jpeg', age: 20, role: '舞蹈、气氛', personality: '开朗、感性', rpgStats: { vocal: 85, dance: 93, stamina: 95 }, status: { desire: 0, affection: 0 } },
-            '周锦宁': { image: 'https://files.catbox.moe/1loxsn.jpeg', age: 20, role: 'Rapper、门面', personality: '傲娇、矜贵', rpgStats: { vocal: 88, dance: 90, stamina: 80 }, status: { desire: 0, affection: 0 } },
-            '谌绪': { image: 'https://files.catbox.moe/9tnuva.png', age: 18, role: '主唱、忙内', personality: '腹黑、恶劣', rpgStats: { vocal: 90, dance: 88, stamina: 85 }, status: { desire: 0, affection: 0 } },
-            '孟明赫': { image: 'https://files.catbox.moe/m446ro.jpeg', age: 20, role: 'Rapper', personality: '阴郁、厌世', rpgStats: { vocal: 89, dance: 85, stamina: 82 }, status: { desire: 0, affection: 0 } },
-            '亓谢': { image: 'https://files.catbox.moe/ev2g1l.png', age: 18, role: '舞蹈、副Rapper', personality: '疯批、天才', rpgStats: { vocal: 80, dance: 94, stamina: 90 }, status: { desire: 0, affection: 0 } },
-            '桑洛凡': { image: 'https://files.catbox.moe/syudzu.png', age: 27, role: '传奇Solo', personality: '慵懒、桀骜', rpgStats: { vocal: 98, dance: 90, stamina: 88 }, status: { desire: 0, affection: 0 } },
-            '你': { image: '', age: '?', role: 'CTE宿舍成员', personality: '由你定义', rpgStats: { vocal: 50, dance: 50, stamina: 50 }, status: { desire: 0, affection: 0 } }
+            '魏月华': { image: 'https://files.catbox.moe/auqnct.jpeg', age: 27, role: '万城娱乐CEO', personality: '严肃、冷酷', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '秦述': { image: 'https://files.catbox.moe/c2khbl.jpeg', age: 24, role: '队长、主舞', personality: '沉默、清冷', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '司洛': { image: 'https://files.catbox.moe/pohz52.jpeg', age: 24, role: '全能ACE', personality: '慵懒、随性', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '鹿言': { image: 'https://files.catbox.moe/parliq.jpeg', age: 23, role: '主唱担当', personality: '温柔、谦逊', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '魏星泽': { image: 'https://files.catbox.moe/syo0ze.jpeg', age: 20, role: '舞蹈、气氛', personality: '开朗、感性', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '周锦宁': { image: 'https://files.catbox.moe/1loxsn.jpeg', age: 20, role: 'Rapper、门面', personality: '傲娇、矜贵', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '谌绪': { image: 'https://files.catbox.moe/9tnuva.png', age: 18, role: '主唱、忙内', personality: '腹黑、恶劣', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '孟明赫': { image: 'https://files.catbox.moe/m446ro.jpeg', age: 20, role: 'Rapper', personality: '阴郁、厌世', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '亓谢': { image: 'https://files.catbox.moe/ev2g1l.png', age: 18, role: '舞蹈、副Rapper', personality: '疯批、天才', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '桑洛凡': { image: 'https://files.catbox.moe/syudzu.png', age: 27, role: '传奇Solo', personality: '慵懒、桀骜', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
+            '你': { image: '', age: '?', role: 'CTE宿舍成员', personality: '由你定义', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } }
         },
 
         roomDetails: {
@@ -213,6 +214,12 @@
                         const charData = statData.MainCharacters[name];
                         
                         if (charData) {
+                            // [修改] 读取 RPG 四维数据：歌艺、舞蹈、口才、表演
+                            if (charData['歌艺'] !== undefined) profile.rpgStats.vocal = parseInt(charData['歌艺']);
+                            if (charData['舞蹈'] !== undefined) profile.rpgStats.dance = parseInt(charData['舞蹈']);
+                            if (charData['口才'] !== undefined) profile.rpgStats.eloquence = parseInt(charData['口才']);
+                            if (charData['表演'] !== undefined) profile.rpgStats.acting = parseInt(charData['表演']);
+
                             if (charData['欲望'] !== undefined) profile.status.desire = parseInt(charData['欲望']);
                             
                             if (charData['好感'] !== undefined) profile.status.affection = parseInt(charData['好感']);
@@ -245,7 +252,8 @@
                     if (name === '你') continue;
                     
                     const roleText = (profile.role && typeof profile.role === 'string') ? profile.role.split('、')[0] : '成员';
-                    const stats = profile.rpgStats || { vocal: 50, dance: 50 };
+                    // [修改] 确保获取最新的 stats，包括新增字段
+                    const stats = profile.rpgStats || { vocal: 0, dance: 0, eloquence: 0, acting: 0 };
                     
                     let warningHtml = '';
                     if (profile.status && profile.status.desire > 80) {
@@ -262,25 +270,47 @@
                                     <div style="font-size:10px; color:#888;">${profile.personality}</div>
                                 </div>
                                 
+                                <!-- 第一行：歌艺 & 舞蹈 -->
                                 <div class="cte-idol-rpg-stat-row">
                                     <div class="cte-idol-rpg-stat-bar-container">
                                         <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>Vocal</span> <span>${stats.vocal}</span>
+                                            <span>歌艺</span> <span>${stats.vocal}</span>
                                         </div>
                                         <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${stats.vocal}%; background:#c5a065;"></div>
+                                            <div class="bar-fill" style="width:${Math.min(100, stats.vocal)}%; background:#c5a065;"></div>
                                         </div>
                                     </div>
                                     <div class="cte-idol-rpg-stat-bar-container">
                                         <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>Dance</span> <span>${stats.dance}</span>
+                                            <span>舞蹈</span> <span>${stats.dance}</span>
                                         </div>
                                         <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${stats.dance}%; background:#c5a065;"></div>
+                                            <div class="bar-fill" style="width:${Math.min(100, stats.dance)}%; background:#c5a065;"></div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- [新增] 第二行：口才 & 表演 -->
+                                <div class="cte-idol-rpg-stat-row" style="margin-top: 5px;">
+                                    <div class="cte-idol-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>口才</span> <span>${stats.eloquence}</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${Math.min(100, stats.eloquence)}%; background:#8ec565;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="cte-idol-rpg-stat-bar-container">
+                                        <div class="label" style="display:flex; justify-content:space-between;">
+                                            <span>表演</span> <span>${stats.acting}</span>
+                                        </div>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:${Math.min(100, stats.acting)}%; background:#8ec565;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 第三行：欲望 & 好感 -->
                                 <div class="cte-idol-rpg-stat-row" style="margin-top: 5px;">
                                     <div class="cte-idol-rpg-stat-bar-container">
                                         <div class="label" style="display:flex; justify-content:space-between;">
