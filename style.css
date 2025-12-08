@@ -1188,3 +1188,239 @@
 .cte-idol-hb-close-button {
     background: #ccc; color: #fff; border:none; padding:8px 20px; border-radius:20px; cursor:pointer;
 }
+
+/* ==========================================================================
+   [NEW] ARCHIVE OVERVIEW CARD STYLE
+   ========================================================================== */
+.cte-archive-card {
+    background-color: #f9f9f7;
+    width: 100%;
+    height: 100%;
+    padding: 32px 28px;
+    border-radius: 4px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    color: #1a1a1a; /* Archive specific text color */
+}
+
+/* Header */
+.cte-archive-card header {
+    margin-bottom: 20px;
+}
+
+.cte-archive-header-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    border-bottom: 4px solid #1a1a1a;
+    padding-bottom: 8px;
+}
+
+.cte-archive-header-date h1 {
+    font-family: 'Noto Serif SC', 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 28px; /* Adjusted */
+    letter-spacing: -0.5px;
+    line-height: 1;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.cte-archive-time-badge {
+    font-family: 'Inter', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: #eadddd;
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+
+.cte-archive-meta-block {
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: #555555;
+}
+
+.cte-archive-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.cte-archive-meta-primary {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.cte-archive-meta-secondary {
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Briefing Section */
+.cte-archive-briefing-box {
+    background-color: #f0f0ed;
+    padding: 12px 14px;
+    border-left: 3px solid #a84444;
+    margin-bottom: 20px;
+    border-radius: 0 2px 2px 0;
+}
+
+.cte-archive-briefing-row {
+    display: flex;
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    align-items: baseline;
+}
+.cte-archive-briefing-row:last-child { margin-bottom: 0; }
+
+.cte-archive-b-label {
+    min-width: 65px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #a84444;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cte-archive-b-content {
+    font-family: 'Noto Serif SC', serif;
+    color: #1a1a1a;
+    flex: 1;
+}
+
+.cte-archive-status-tag-sm {
+    display: inline-block;
+    font-size: 9px;
+    transform: scale(0.9);
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 0 4px;
+    border-radius: 2px;
+    margin-left: 4px;
+    color: #666;
+}
+
+/* Sections */
+.cte-archive-section-divider {
+    border-top: 1px solid #e0e0e0;
+    margin: 15px 0 10px 0;
+    position: relative;
+}
+
+.cte-archive-section-label {
+    position: absolute;
+    top: -8px;
+    background-color: #f9f9f7;
+    padding-right: 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #888888;
+    font-weight: 600;
+}
+
+.cte-archive-balance-section {
+    text-align: center;
+    padding: 5px 0 15px 0;
+}
+
+.cte-archive-balance-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -1px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cte-archive-balance-currency {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #888888;
+    transform: translateY(-5px);
+}
+
+.cte-archive-dossier-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.cte-archive-dossier-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cte-archive-dossier-item:last-child { border-bottom: none; }
+
+.cte-archive-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cte-archive-item-content {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    color: #1a1a1a;
+    line-height: 1.4;
+}
+
+.cte-archive-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.cte-archive-pending { background-color: #1a1a1a; color: #f9f9f7; }
+.cte-archive-progress { border: 1px solid #1a1a1a; color: #1a1a1a; }
+
+.cte-archive-footer-stamp {
+    position: absolute;
+    bottom: 20px;
+    right: 28px;
+    padding-top: 10px;
+    border-top: 2px solid #1a1a1a;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    opacity: 0.6;
+    width: 100px;
+}
+
+.cte-archive-barcode {
+    height: 20px;
+    background: repeating-linear-gradient(
+        to right,
+        #000,
+        #000 2px,
+        transparent 2px,
+        transparent 4px
+    );
+    width: 100%;
+}
