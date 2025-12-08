@@ -2,12 +2,11 @@
     // ==========================================
     // 0. 插件配置与上下文
     // ==========================================
-    const extensionName = "CTE_Map"; // This refers to file path, keeping it original or user can change folder name
+    const extensionName = "CTE_Map"; 
     const extensionPath = `scripts/extensions/third-party/${extensionName}`;
     let stContext = null;
     const DEFAULT_NATIONAL_BG = "https://files.catbox.moe/8z3pnp.png";
 
-    // 确保全局命名空间存在 (Refactored to CTEIdolManager)
     window.CTEIdolManager = window.CTEIdolManager || {};
 
     // ==========================================
@@ -19,7 +18,9 @@
         state: {
             funds: 2450000,
             fans: 824000,
-            morale: "High"
+            morale: "High",
+            futureLog: [], // 新增
+            activeTasks: [] // 新增
         }
     };
 
@@ -67,7 +68,6 @@
         ],
 
         // 角色档案
-        // [修改说明] rpgStats 已更新为 { vocal, dance, eloquence, acting }，默认值为 0，数据将从 MVU 读取
         characterProfiles: {
             '魏月华': { image: 'https://files.catbox.moe/auqnct.jpeg', age: 27, role: '万城娱乐CEO', personality: '严肃、冷酷', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
             '秦述': { image: 'https://files.catbox.moe/c2khbl.jpeg', age: 24, role: '队长、主舞', personality: '沉默、清冷', rpgStats: { vocal: 0, dance: 0, eloquence: 0, acting: 0 }, status: { desire: 0, affection: 0 } },
@@ -111,6 +111,38 @@
     // 2. 核心功能函数
     // ==========================================
 
+    // [新增] 2.0 解析 status_top XML 文本
+    window.CTEIdolManager.parseStatusTop = function(text) {
+        if (!text) return null;
+        
+        const timeMatch = text.match(/时间[:：]\s*(.*?)(?:\n|$)/);
+        const locMatch = text.match(/地点[:：]\s*(.*?)(?:\n|$)/);
+        // 今日安排：匹配到 "最近演出安排" 或 字符串结束
+        const todayMatch = text.match(/今日安排[:：]\s*([\s\S]*?)(?=最近演出安排[:：]|$)/);
+        const upcomingMatch = text.match(/最近演出安排[:：]\s*([\s\S]*?)(?:\n|$)/);
+
+        return {
+            dateStr: timeMatch ? timeMatch[1].trim() : '未知时间',
+            locationStr: locMatch ? locMatch[1].trim() : '未知地点',
+            todaySchedule: todayMatch ? todayMatch[1].trim() : '无今日安排',
+            upcoming: upcomingMatch ? upcomingMatch[1].trim() : '无近期演出'
+        };
+    };
+
+    // [修改] 获取 status_top 内容的辅助函数
+    window.CTEIdolManager.getStatusTopContent = function() {
+        let context = stContext;
+        if (!context && window.SillyTavern) context = window.SillyTavern.getContext();
+        if (!context || !context.chat) return null;
+
+        for (let i = context.chat.length - 1; i >= 0; i--) {
+            const msg = context.chat[i].mes || "";
+            const match = msg.match(/<status_top>([\s\S]*?)<\/status_top>/i);
+            if (match) return match[1].trim();
+        }
+        return null;
+    };
+
     // 2.1 扫描 RPG 状态
     window.CTEIdolManager.scanForRPGStats = function() {
         if (window.CTEIdolManager.RPG && window.CTEIdolManager.RPG.state) {
@@ -124,7 +156,7 @@
         }
     };
 
-    // [新增] 从 status_bottom1 读取角色动态状态
+    // 从 status_bottom1 读取角色动态状态
     window.CTEIdolManager.readCharacterStatsFromChat = function() {
         let context = stContext;
         if (!context && window.SillyTavern) {
@@ -152,29 +184,21 @@
 
             if (charMatch) {
                 const blockText = charMatch[1];
-                
                 const desireMatch = blockText.match(/欲望[：:]\s*(\d+)/);
-                if (desireMatch) {
-                    profile.status.desire = parseInt(desireMatch[1]);
-                }
-
+                if (desireMatch) profile.status.desire = parseInt(desireMatch[1]);
                 const affMatch = blockText.match(/好感(?:度)?[：:]\s*(\d+)/);
-                if (affMatch) {
-                    profile.status.affection = parseInt(affMatch[1]);
-                }
+                if (affMatch) profile.status.affection = parseInt(affMatch[1]);
             }
         }
-        console.log("[CTE Idol Map] Character stats updated from chat (text tag).");
     };
 
-    // [新增] 读取 MVU (stat_data)
+    // [修改] 读取 MVU (stat_data) 包括 Future Log 和 Active Tasks
     window.CTEIdolManager.readStatsFromMVU = function() {
         let ST = window.SillyTavern;
         if (!ST && window.parent) ST = window.parent.SillyTavern;
         if (!ST) return;
 
         let statDataRaw = null;
-
         try {
             const extVars = ST.extension_settings?.variables;
             if (extVars) {
@@ -207,26 +231,36 @@
             try {
                 const statData = typeof statDataRaw === 'string' ? JSON.parse(statDataRaw) : statDataRaw;
                 
+                // [新增] 读取全局资产与日志
+                if (statData.funds) window.CTEIdolManager.RPG.state.funds = parseInt(statData.funds);
+                if (statData.assets) window.CTEIdolManager.RPG.state.funds = parseInt(statData.assets); // 兼容字段
+                
+                if (statData.future_log) {
+                    window.CTEIdolManager.RPG.state.futureLog = Array.isArray(statData.future_log) 
+                        ? statData.future_log 
+                        : [statData.future_log];
+                }
+                
+                if (statData.active_tasks) {
+                    window.CTEIdolManager.RPG.state.activeTasks = Array.isArray(statData.active_tasks) 
+                        ? statData.active_tasks 
+                        : [statData.active_tasks];
+                }
+
                 if (statData && statData.MainCharacters) {
                     for (const [name, profile] of Object.entries(window.CTEIdolManager.characterProfiles)) {
                         if (name === '你') continue;
-                        
                         const charData = statData.MainCharacters[name];
-                        
                         if (charData) {
-                            // [修改] 读取 RPG 四维数据：歌艺、舞蹈、口才、表演
                             if (charData['歌艺'] !== undefined) profile.rpgStats.vocal = parseInt(charData['歌艺']);
                             if (charData['舞蹈'] !== undefined) profile.rpgStats.dance = parseInt(charData['舞蹈']);
                             if (charData['口才'] !== undefined) profile.rpgStats.eloquence = parseInt(charData['口才']);
                             if (charData['表演'] !== undefined) profile.rpgStats.acting = parseInt(charData['表演']);
-
                             if (charData['欲望'] !== undefined) profile.status.desire = parseInt(charData['欲望']);
-                            
                             if (charData['好感'] !== undefined) profile.status.affection = parseInt(charData['好感']);
                             else if (charData['好感度'] !== undefined) profile.status.affection = parseInt(charData['好感度']);
                         }
                     }
-                    console.log("[CTE Idol Map] Success: Stats updated from MVU stat_data.");
                 }
             } catch (e) {
                 console.error("[CTE Idol Map] Failed to parse stat_data:", e);
@@ -234,7 +268,7 @@
         }
     };
 
-    // 2.2 渲染事务所内容
+    // 2.2 渲染事务所内容 (Dashboard updated with Archive Card)
     window.CTEIdolManager.renderRPGContent = function(viewType) {
         const container = document.querySelector('#cte-idol-map-panel #cte-idol-rpg-content-area');
         
@@ -252,7 +286,6 @@
                     if (name === '你') continue;
                     
                     const roleText = (profile.role && typeof profile.role === 'string') ? profile.role.split('、')[0] : '成员';
-                    // [修改] 确保获取最新的 stats，包括新增字段
                     const stats = profile.rpgStats || { vocal: 0, dance: 0, eloquence: 0, acting: 0 };
                     
                     let warningHtml = '';
@@ -270,66 +303,36 @@
                                     <div style="font-size:10px; color:#888;">${profile.personality}</div>
                                 </div>
                                 
-                                <!-- 第一行：歌艺 & 舞蹈 -->
                                 <div class="cte-idol-rpg-stat-row">
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>歌艺</span> <span>${stats.vocal}</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${Math.min(100, stats.vocal)}%; background:#c5a065;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>歌艺</span> <span>${stats.vocal}</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, stats.vocal)}%; background:#c5a065;"></div></div>
                                     </div>
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>舞蹈</span> <span>${stats.dance}</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${Math.min(100, stats.dance)}%; background:#c5a065;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>舞蹈</span> <span>${stats.dance}</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, stats.dance)}%; background:#c5a065;"></div></div>
                                     </div>
                                 </div>
-
-                                <!-- [新增] 第二行：口才 & 表演 -->
                                 <div class="cte-idol-rpg-stat-row" style="margin-top: 5px;">
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>口才</span> <span>${stats.eloquence}</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${Math.min(100, stats.eloquence)}%; background:#8ec565;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>口才</span> <span>${stats.eloquence}</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, stats.eloquence)}%; background:#8ec565;"></div></div>
                                     </div>
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>表演</span> <span>${stats.acting}</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${Math.min(100, stats.acting)}%; background:#8ec565;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>表演</span> <span>${stats.acting}</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, stats.acting)}%; background:#8ec565;"></div></div>
                                     </div>
                                 </div>
-
-                                <!-- 第三行：欲望 & 好感 -->
                                 <div class="cte-idol-rpg-stat-row" style="margin-top: 5px;">
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>欲望</span> <span style="color:#ec4899;">${profile.status.desire}%</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${profile.status.desire}%; background:#ec4899; box-shadow:0 0 5px #ec4899;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>欲望</span> <span style="color:#ec4899;">${profile.status.desire}%</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${profile.status.desire}%; background:#ec4899; box-shadow:0 0 5px #ec4899;"></div></div>
                                     </div>
                                     <div class="cte-idol-rpg-stat-bar-container">
-                                        <div class="label" style="display:flex; justify-content:space-between;">
-                                            <span>好感</span> <span style="color:#f43f5e;">${profile.status.affection}%</span>
-                                        </div>
-                                        <div class="bar-bg">
-                                            <div class="bar-fill" style="width:${profile.status.affection}%; background:#f43f5e;"></div>
-                                        </div>
+                                        <div class="label" style="display:flex; justify-content:space-between;"><span>好感</span> <span style="color:#f43f5e;">${profile.status.affection}%</span></div>
+                                        <div class="bar-bg"><div class="bar-fill" style="width:${profile.status.affection}%; background:#f43f5e;"></div></div>
                                     </div>
                                 </div>
-
                                 ${warningHtml}
                             </div>
                         </div>
@@ -340,17 +343,106 @@
             } else if (viewType === 'agency') {
                 htmlContent = '<div style="color:#888; text-align:center; padding:50px;">事务所运营功能正在开发中...<br>请先管理好现有艺人。</div>';
             } else {
-                // Dashboard
+                // ==========================
+                // Dashboard (Archive Card)
+                // ==========================
+                const statusTopRaw = window.CTEIdolManager.getStatusTopContent();
+                const parsedStatus = window.CTEIdolManager.parseStatusTop(statusTopRaw) || {
+                    dateStr: '数据同步中...',
+                    locationStr: '位置未知',
+                    todaySchedule: '暂无行程信息',
+                    upcoming: '待定'
+                };
+
+                // Split Date string if possible (e.g. "2025年1月22日 | 星期五 | 06:30 | 训练日")
+                let timeBadge = '';
+                let dateParts = parsedStatus.dateStr.split('|');
+                if (dateParts.length >= 3) timeBadge = dateParts[2].trim();
+
+                const funds = window.CTEIdolManager.RPG.state.funds.toLocaleString();
+                
+                // Generate Lists
+                const futureLogHtml = window.CTEIdolManager.RPG.state.futureLog.length > 0 
+                    ? window.CTEIdolManager.RPG.state.futureLog.map(item => `
+                        <li class="cte-archive-dossier-item">
+                            <div class="cte-archive-item-meta"><span><i class="fa-regular fa-clock"></i> PLAN</span><span class="cte-archive-tag cte-archive-pending">LOG</span></div>
+                            <div class="cte-archive-item-content">${item}</div>
+                        </li>`).join('') 
+                    : `<li class="cte-archive-dossier-item"><div class="cte-archive-item-content" style="color:#999">暂无待办事项</div></li>`;
+
+                const activeTasksHtml = window.CTEIdolManager.RPG.state.activeTasks.length > 0
+                    ? window.CTEIdolManager.RPG.state.activeTasks.map(item => `
+                        <li class="cte-archive-dossier-item">
+                            <div class="cte-archive-item-meta"><span></span><span class="cte-archive-tag cte-archive-progress">进行中</span></div>
+                            <div class="cte-archive-item-content">${item}</div>
+                        </li>`).join('')
+                    : `<li class="cte-archive-dossier-item"><div class="cte-archive-item-content" style="color:#999">暂无进行中任务</div></li>`;
+
                 htmlContent = `
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                        <div class="cte-idol-rpg-card">
-                            <h3 style="color:#fff; font-size:14px; margin-top:0;">近期通告</h3>
-                            <ul style="list-style:none; padding:0; font-size:12px; color:#ccc;">
-                                <li style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);">京港电视台专访 <span style="float:right; color:#c5a065;">完成</span></li>
-                                <li style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);">新专辑《NEON》筹备 <span style="float:right; color:#888;">进行中</span></li>
-                                <li style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);">练习生月度考核 <span style="float:right; color:#888;">下周</span></li>
-                            </ul>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; height:100%;">
+                        <!-- Left: Archive Card (Replaces Recent Announcements) -->
+                        <div class="cte-archive-card">
+                            <div class="cte-archive-card-content">
+                                <header>
+                                    <div class="cte-archive-header-date">
+                                        <h1>今日概览</h1>
+                                        ${timeBadge ? `<div class="cte-archive-time-badge">${timeBadge}</div>` : ''}
+                                    </div>
+                                    <div class="cte-archive-meta-block">
+                                        <div class="cte-archive-meta-row cte-archive-meta-primary">
+                                            ${parsedStatus.dateStr}
+                                        </div>
+                                        <div class="cte-archive-meta-row cte-archive-meta-secondary">
+                                            <i class="fa-solid fa-location-dot" style="font-size: 10px; margin-right: 4px;"></i> 
+                                            ${parsedStatus.locationStr}
+                                        </div>
+                                    </div>
+                                </header>
+
+                                <div class="cte-archive-briefing-box">
+                                    <div class="cte-archive-briefing-row">
+                                        <span class="cte-archive-b-label">Today</span>
+                                        <span class="cte-archive-b-content" style="white-space: pre-line;">${parsedStatus.todaySchedule}</span>
+                                    </div>
+                                    <div class="cte-archive-briefing-row">
+                                        <span class="cte-archive-b-label">Upcoming</span>
+                                        <span class="cte-archive-b-content">
+                                            ${parsedStatus.upcoming}
+                                            <span class="cte-archive-status-tag-sm">准备中</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="cte-archive-section-divider">
+                                    <span class="cte-archive-section-label"><i class="fa-solid fa-coins"></i> Total Assets</span>
+                                </div>
+                                <section class="cte-archive-balance-section">
+                                    <div class="cte-archive-balance-value">
+                                        ${funds} <span class="cte-archive-balance-currency">CNY</span>
+                                    </div>
+                                </section>
+
+                                <div class="cte-archive-section-divider">
+                                    <span class="cte-archive-section-label"><i class="fa-regular fa-calendar"></i> Future Log</span>
+                                </div>
+                                <ul class="cte-archive-dossier-list">
+                                    ${futureLogHtml}
+                                </ul>
+
+                                <div class="cte-archive-section-divider">
+                                    <span class="cte-archive-section-label"><i class="fa-solid fa-list-check"></i> Active Tasks</span>
+                                </div>
+                                <ul class="cte-archive-dossier-list">
+                                    ${activeTasksHtml}
+                                </ul>
+
+                                <div class="cte-archive-footer-stamp">
+                                    <div class="cte-archive-barcode"></div>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Right: Stats & Score (Existing) -->
                         <div class="cte-idol-rpg-card" style="display:flex; align-items:center; justify-content:center;">
                             <div style="text-align:center;">
                                 <div style="font-size:32px; color:#c5a065; font-weight:bold;">S+</div>
@@ -756,21 +848,7 @@
         const container = $('#cte-idol-timeline-container');
         statusEl.text('正在读取最新状态...');
         
-        if (!stContext) {
-            statusEl.text('错误：无法连接到 SillyTavern 上下文。');
-            return;
-        }
-
-        const chat = stContext.chat || [];
-        let foundContent = null;
-        for (let i = chat.length - 1; i >= 0; i--) {
-            const msg = chat[i].mes;
-            const match = msg.match(/<status_top>([\s\S]*?)<\/status_top>/i);
-            if (match) {
-                foundContent = match[1].trim();
-                break;
-            }
-        }
+        const foundContent = window.CTEIdolManager.getStatusTopContent();
 
         if (!foundContent) {
             statusEl.text('未找到最新行程信息');
