@@ -356,21 +356,12 @@
         confirmSign: function(memberName) {
             if (!this.pendingCard || !this.pendingRawContract) return;
             this.pendingCard.classList.add('signed');
-        // 2. Send to SillyTavern
-        // 将 ASCII 管道符 | 替换为全角管道符 ｜，防止被识别为命令分隔符
-        // 同时处理可能存在的双引号，防止参数截断
-        let safeContract = this.pendingRawContract.replace(/\|/g, '｜').replace(/"/g, '\\"');
-
-        const message = `${memberName} 接取通告：${safeContract}`;
-
-        if (stContext) {
-            // 建议加上 try-catch 防止在此处报错中断 UI 逻辑
-            try {
+            const message = `${memberName} 接取通告：${this.pendingRawContract}`;
+            if (stContext) {
                 stContext.executeSlashCommandsWithOptions(`/setinput ${message}`);
-            } catch (e) {
-                console.error("发送指令失败:", e);
             }
-        }
+            this.closeModal();
+        },
 
         confirmCustomSign: function() {
             const input = document.getElementById('cte-agency-custom-member');
@@ -1879,6 +1870,7 @@
     };
 
 })();
+
 
 
 
