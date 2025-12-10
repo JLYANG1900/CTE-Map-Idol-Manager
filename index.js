@@ -641,6 +641,304 @@
         }
     };
 
+    // ==========================================
+    // [NEW] 3.0 采购中心模块 (Shop Manager)
+    // ==========================================
+    window.CTEIdolManager.Shop = {
+        items: [],
+        pendingItem: null,
+        
+        CATEGORY_CONFIG: {
+            'marketing': { label: 'MARKETING', icon: 'fa-bullhorn', slug: 'marketing' },
+            'training': { label: 'TRAINING', icon: 'fa-graduation-cap', slug: 'training' },
+            'staff': { label: 'STAFF', icon: 'fa-user-tie', slug: 'staff' },
+            'fan': { label: 'FAN SUPPORT', icon: 'fa-heart', slug: 'fan' },
+            'travel': { label: 'TRAVEL', icon: 'fa-plane-departure', slug: 'travel' },
+            'invest': { label: 'INVESTMENT', icon: 'fa-building', slug: 'invest' },
+            'vehicle': { label: 'VEHICLE', icon: 'fa-car', slug: 'vehicle' },
+            'fashion': { label: 'LUXURY', icon: 'fa-gem', slug: 'fashion' },
+            'gear': { label: 'GEAR', icon: 'fa-sliders', slug: 'gear' },
+            'living': { label: 'HOME', icon: 'fa-couch', slug: 'living' },
+            'food': { label: 'FOOD', icon: 'fa-utensils', slug: 'food' },
+            'gift': { label: 'GIFT', icon: 'fa-gift', slug: 'gift' }
+        },
+
+        getCategoryConfig: function(rawCat) {
+            const lowerCat = rawCat.toLowerCase();
+            if (lowerCat.includes('营销') || lowerCat.includes('pr') || lowerCat.includes('marketing')) return this.CATEGORY_CONFIG['marketing'];
+            if (lowerCat.includes('课程') || lowerCat.includes('edu') || lowerCat.includes('training')) return this.CATEGORY_CONFIG['training'];
+            if (lowerCat.includes('团队') || lowerCat.includes('staff')) return this.CATEGORY_CONFIG['staff'];
+            if (lowerCat.includes('粉丝') || lowerCat.includes('fan')) return this.CATEGORY_CONFIG['fan'];
+            if (lowerCat.includes('旅游') || lowerCat.includes('travel')) return this.CATEGORY_CONFIG['travel'];
+            if (lowerCat.includes('投资') || lowerCat.includes('invest')) return this.CATEGORY_CONFIG['invest'];
+            if (lowerCat.includes('载具') || lowerCat.includes('auto') || lowerCat.includes('vehicle')) return this.CATEGORY_CONFIG['vehicle'];
+            if (lowerCat.includes('时尚') || lowerCat.includes('fashion')) return this.CATEGORY_CONFIG['fashion'];
+            if (lowerCat.includes('设备') || lowerCat.includes('gear')) return this.CATEGORY_CONFIG['gear'];
+            if (lowerCat.includes('家居') || lowerCat.includes('home') || lowerCat.includes('living')) return this.CATEGORY_CONFIG['living'];
+            if (lowerCat.includes('饮食') || lowerCat.includes('food')) return this.CATEGORY_CONFIG['food'];
+            return this.CATEGORY_CONFIG['gift'];
+        },
+
+        scanChatForShop: function() {
+            let context = stContext;
+            if (!context && window.SillyTavern) context = window.SillyTavern.getContext();
+            if (!context || !context.chat) return null;
+
+            for (let i = context.chat.length - 1; i >= 0; i--) {
+                const msg = context.chat[i].mes || "";
+                const match = msg.match(/<shop>([\s\S]*?)<\/shop>/i);
+                if (match) {
+                    this.parseShopData(match[1].trim());
+                    return;
+                }
+            }
+            this.items = []; // Clear if not found
+        },
+
+        parseShopData: function(content) {
+            this.items = [];
+            const lines = content.split('\n').filter(line => line.trim().startsWith('[') && line.trim().endsWith(']'));
+            
+            lines.forEach((line, index) => {
+                const parts = line.slice(1, -1).split('｜');
+                if (parts.length < 8) return;
+                
+                const [tag, categoryRaw, name, brand, desc, effect, priceStr, stock] = parts;
+                
+                // Parse Price
+                let priceVal = 0;
+                try {
+                    priceVal = parseInt(priceStr.replace(/,/g, '').replace(/CNY/i, '').trim()) || 0;
+                } catch(e) {}
+
+                const catConfig = this.getCategoryConfig(categoryRaw);
+
+                this.items.push({
+                    id: `shop_item_${index}`,
+                    rawCategory: categoryRaw,
+                    categorySlug: catConfig.slug,
+                    categoryLabel: catConfig.label,
+                    icon: catConfig.icon,
+                    name: name,
+                    brand: brand,
+                    desc: desc,
+                    effect: effect,
+                    priceStr: priceStr,
+                    priceVal: priceVal,
+                    stock: stock
+                });
+            });
+        },
+
+        renderView: function(container) {
+            this.scanChatForShop(); // Refresh data
+            
+            const funds = window.CTEIdolManager.RPG.state.funds.toLocaleString();
+            
+            let itemsHtml = '';
+            if (this.items.length === 0) {
+                itemsHtml = '<div style="text-align:center; padding:50px; color:#888;">暂无上架商品<br>请确保上下文中包含 &lt;shop&gt; 标签数据</div>';
+            } else {
+                this.items.forEach(item => {
+                    itemsHtml += this.createItemHTML(item);
+                });
+            }
+
+            // Tabs HTML
+            const tabs = [
+                {k:'all', l:'All'}, {k:'marketing', l:'营销 PR'}, {k:'training', l:'课程 Edu'}, 
+                {k:'staff', l:'团队 Staff'}, {k:'fan', l:'粉丝 Fan'}, {k:'travel', l:'旅游 Travel'}, 
+                {k:'invest', l:'投资 Invest'}, {k:'vehicle', l:'载具 Auto'}, {k:'fashion', l:'时尚 Fashion'}, 
+                {k:'gear', l:'设备 Gear'}, {k:'living', l:'家居 Home'}, {k:'food', l:'饮食 Food'}, 
+                {k:'gift', l:'礼物 Gift'}
+            ];
+            
+            const tabsHtml = tabs.map((t, idx) => 
+                `<button class="cte-shop-tab-btn ${idx===0?'active':''}" onclick="window.CTEIdolManager.Shop.filter('${t.k}', this)">${t.l}</button>`
+            ).join('');
+
+            const html = `
+                <div class="cte-shop-scope cte-agency-container">
+                    <div class="cte-shop-card">
+                        <header class="cte-shop-header">
+                            <div class="cte-shop-title">
+                                <h1>CTE 采购中心</h1>
+                            </div>
+                            <div class="cte-shop-meta">
+                                <div>SYSTEM: V4.0</div>
+                                <div>STATUS: ACTIVE</div>
+                            </div>
+                        </header>
+
+                        <div class="cte-shop-resource-bar">
+                            <div class="cte-shop-res-item">
+                                <i class="fa-solid fa-wallet cte-shop-res-icon"></i>
+                                <span class="cte-shop-res-label">预算 Budget:</span>
+                            </div>
+                            <div class="cte-shop-res-item">
+                                <span class="cte-shop-res-val">${funds}</span> 
+                            </div>
+                        </div>
+
+                        <div class="cte-shop-tabs">
+                            ${tabsHtml}
+                        </div>
+
+                        <div class="cte-shop-list" id="cte-shop-list-container">
+                            ${itemsHtml}
+                        </div>
+                        
+                        <div style="margin-top: auto; padding-top:10px; opacity:0.6; font-size:9px; display:flex; justify-content:space-between; border-top: 1px solid #ddd;">
+                            <span>CTE PROCUREMENT SYSTEM</span>
+                            <span>SECURE ENCRYPTED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 购物确认弹窗 -->
+                <div class="cte-shop-modal-overlay cte-shop-scope" id="cte-shop-modal">
+                    <div class="cte-shop-modal-box">
+                        <div class="cte-shop-modal-header" style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:5px;">
+                            <div class="cte-shop-modal-title" style="margin:0;">分配对象 / ASSIGN TO</div>
+                            <button class="cte-shop-close-btn" style="width:auto; margin:0;" onclick="window.CTEIdolManager.Shop.closeModal()">x</button>
+                        </div>
+                        
+                        <div class="cte-shop-grid-select">
+                            <div class="cte-shop-select-btn cte-shop-span-full" onclick="window.CTEIdolManager.Shop.selectMember(this, 'CTE全员')">
+                                <span class="name">CTE 全员</span><span class="role-tag">Team</span>
+                            </div>
+                            <div class="cte-shop-select-btn cte-shop-span-half" onclick="window.CTEIdolManager.Shop.selectMember(this, '魏月华')">
+                                <span class="name">魏月华</span><span class="role-tag">Manager</span>
+                            </div>
+                            <div class="cte-shop-select-btn cte-shop-span-half" onclick="window.CTEIdolManager.Shop.selectMember(this, '{{user}}')">
+                                <span class="name">{{user}}</span><span class="role-tag">Me</span>
+                            </div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '桑洛凡')"><span class="name">桑洛凡</span><span class="role-tag">Legend</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '秦述')"><span class="name">秦述</span><span class="role-tag">Leader</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '司洛')"><span class="name">司洛</span><span class="role-tag">ACE</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '鹿言')"><span class="name">鹿言</span><span class="role-tag">Vocal</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '魏星泽')"><span class="name">魏星泽</span><span class="role-tag">Dancer</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '周锦宁')"><span class="name">周锦宁</span><span class="role-tag">Visual</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '谌绪')"><span class="name">谌绪</span><span class="role-tag">Vocal</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '孟明赫')"><span class="name">孟明赫</span><span class="role-tag">Rapper</span></div>
+                            <div class="cte-shop-select-btn cte-shop-span-third" onclick="window.CTEIdolManager.Shop.selectMember(this, '亓谢')"><span class="name">亓谢</span><span class="role-tag">Rapper</span></div>
+                            
+                            <input type="text" class="cte-shop-other-input" id="cte-shop-other-input" placeholder="其他 / Other (请填写)" oninput="window.CTEIdolManager.Shop.selectOther(this)">
+                        </div>
+
+                        <button class="cte-shop-confirm-btn" id="cte-shop-confirm-btn" onclick="window.CTEIdolManager.Shop.confirmPurchase()">确认下单 / CONFIRM</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        },
+
+        createItemHTML: function(item) {
+            return `
+                <div class="cte-shop-item" data-category="${item.categorySlug}" id="${item.id}">
+                    <div class="cte-shop-img-placeholder"><i class="fa-solid ${item.icon}"></i></div>
+                    <div class="cte-shop-details">
+                        <div class="cte-shop-type-brand">
+                            <span>${item.categoryLabel}</span>
+                            <span>${item.brand}</span>
+                        </div>
+                        <span class="cte-shop-name">${item.name}</span>
+                        <span class="cte-shop-desc">${item.desc}</span>
+                        <span class="cte-shop-effect">${item.effect}</span>
+                        <span class="cte-shop-stock" style="margin-top:2px;">库存: ${item.stock}</span>
+                    </div>
+                    <div class="cte-shop-action">
+                        <span class="cte-shop-price">${item.priceStr}</span>
+                        <button class="cte-shop-buy-btn" onclick="window.CTEIdolManager.Shop.openBuyModal('${item.id}')">购买</button>
+                    </div>
+                </div>
+            `;
+        },
+
+        filter: function(category, btnElement) {
+            const buttons = document.querySelectorAll('.cte-shop-tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            const items = document.querySelectorAll('.cte-shop-item');
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        },
+
+        openBuyModal: function(itemId) {
+            const item = this.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            // Check Budget
+            if (window.CTEIdolManager.RPG.state.funds < item.priceVal) {
+                alert("资金不足！无法购买此商品。");
+                return;
+            }
+
+            this.pendingItem = item;
+            document.querySelectorAll('.cte-shop-select-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('cte-shop-other-input').value = '';
+            document.getElementById('cte-shop-confirm-btn').classList.remove('ready');
+            document.getElementById('cte-shop-modal').classList.add('active');
+            this.selectedBeneficiary = null;
+        },
+
+        closeModal: function() {
+            document.getElementById('cte-shop-modal').classList.remove('active');
+            this.pendingItem = null;
+            this.selectedBeneficiary = null;
+        },
+
+        selectMember: function(el, name) {
+            document.querySelectorAll('.cte-shop-select-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('cte-shop-other-input').value = '';
+            el.classList.add('selected');
+            this.selectedBeneficiary = name;
+            this.checkConfirmState();
+        },
+
+        selectOther: function(input) {
+            document.querySelectorAll('.cte-shop-select-btn').forEach(btn => btn.classList.remove('selected'));
+            this.selectedBeneficiary = input.value.trim().length > 0 ? input.value : null;
+            this.checkConfirmState();
+        },
+
+        checkConfirmState: function() {
+            const btn = document.getElementById('cte-shop-confirm-btn');
+            if (this.selectedBeneficiary) btn.classList.add('ready');
+            else btn.classList.remove('ready');
+        },
+
+        confirmPurchase: function() {
+            if (!this.pendingItem || !this.selectedBeneficiary) return;
+
+            // 1. Deduct funds (Client side preview)
+            window.CTEIdolManager.RPG.state.funds -= this.pendingItem.priceVal;
+            
+            // 2. Mark as sold visually
+            const el = document.getElementById(this.pendingItem.id);
+            if(el) el.classList.add('sold');
+
+            // 3. Update funds display
+            const fundsEl = document.querySelector('.cte-shop-res-val');
+            if(fundsEl) fundsEl.innerText = window.CTEIdolManager.RPG.state.funds.toLocaleString();
+            
+            // 4. Send command
+            const message = `{{user}} purchased ${this.pendingItem.name} for ${this.selectedBeneficiary} costing ${this.pendingItem.priceStr}.`;
+            if (stContext) {
+                stContext.executeSlashCommandsWithOptions(`/setinput ${message}`);
+            }
+
+            this.closeModal();
+            // Optional: Switch back to dashboard to see RPG stats update (after AI response)
+        }
+    };
+
 
     // ==========================================
     // 2. 核心功能函数
@@ -865,6 +1163,8 @@
 
             } else if (viewType === 'agency') {
                 window.CTEIdolManager.Contracts.renderView(container);
+            } else if (viewType === 'shop') {
+                window.CTEIdolManager.Shop.renderView(container);
             } else {
                 // ==========================
                 // Dashboard
@@ -1866,11 +2166,8 @@
         window.CTEIdolManager.closeSubMenu();
         window.CTEIdolManager.Heartbeat.closeModal();
         window.CTEIdolManager.Contracts.closeModal();
+        window.CTEIdolManager.Shop.closeModal();
         window.CTEIdolManager.closeTravelMenu(isTravelMenuVisible);
     };
 
 })();
-
-
-
-
