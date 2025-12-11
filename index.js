@@ -1255,8 +1255,7 @@
                 const rightColHtml = window.CTEIdolManager.Contracts.renderMemoCard();
 
                 htmlContent = `
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; height:100%;">
-                        <!-- Left: Archive Card -->
+                    <div class="cte-dashboard-layout">
                         <div class="cte-archive-card">
                             <div class="cte-archive-card-content">
                                 <header>
@@ -2223,4 +2222,5 @@
     };
 
 })();
+
 
