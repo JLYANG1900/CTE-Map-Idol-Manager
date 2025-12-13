@@ -1475,11 +1475,15 @@
     justify-content: center;
 }
 
-/* Use existing archive card styles but ensure fit */
+/* 
+   Requirement 1: Widen Agency Card
+   Increased max-width from 600px to 950px.
+   Width set to 96% to leave a safe margin from screen edges.
+*/
 .cte-agency-card {
     background-color: var(--cte-agency-bg-card);
-    width: 100%;
-    max-width: 600px;
+    width: 96%;           /* Safe margin */
+    max-width: 950px;     /* Increased max width */
     height: 100%;
     padding: 20px 25px;
     border-radius: 4px;
@@ -1488,6 +1492,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    margin: 0 auto;       /* Center the card */
 }
 
 .cte-agency-header {
@@ -1536,10 +1541,20 @@
 }
 .cte-agency-tab-btn:hover:not(.active) { border-color: var(--cte-agency-text-secondary); background-color: #f0f0f0; }
 
-/* Contracts List */
+/* 
+   Requirement 2: Agency List Grid Layout
+   Switched from flex-direction:column to CSS Grid.
+   Uses auto-fill to wrap items, ensuring responsiveness.
+*/
 .cte-agency-list {
-    flex: 1; overflow-y: auto; padding-right: 4px;
-    display: flex; flex-direction: column; gap: 12px;
+    flex: 1; 
+    overflow-y: auto; 
+    padding-right: 4px;
+    display: grid;
+    /* Desktop: Side-by-side; Mobile: Collapses to single column automatically */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 15px;
+    padding-bottom: 20px;
 }
 .cte-agency-list::-webkit-scrollbar { width: 4px; }
 .cte-agency-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
@@ -1547,6 +1562,7 @@
 .cte-agency-empty {
     text-align: center; color: var(--cte-agency-text-muted); font-size: 12px; margin-top: 40px;
     font-family: 'Noto Serif SC', serif; font-style: italic;
+    grid-column: 1 / -1; /* Span full width if empty message */
 }
 
 /* Contract Item Card */
@@ -1559,6 +1575,11 @@
     border-left: 3px solid transparent; 
     display: block; 
     color: #333;
+    /* Ensure proper height in grid */
+    height: auto; 
+    min-height: 150px; 
+    display: flex;
+    flex-direction: column;
 }
 .cte-agency-item.hidden { display: none; }
 .cte-agency-item:hover {
@@ -1599,6 +1620,7 @@
 .cte-item-req-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
     margin-bottom: 8px; background: #fafafa; padding: 8px; border-radius: 2px;
+    flex: 1; /* Take up remaining space before footer */
 }
 .cte-item-req-row {
     display: flex; justify-content: space-between; align-items: center;
@@ -1612,6 +1634,7 @@
 .cte-item-footer {
     display: flex; justify-content: space-between; align-items: center;
     font-size: 10px; border-top: 1px dashed #eee; padding-top: 8px;
+    margin-top: auto; /* Push to bottom */
 }
 .cte-item-payment { font-weight: 700; color: var(--cte-agency-text-primary); font-size: 11px;}
 .cte-item-days { color: var(--cte-agency-text-secondary); margin-top: 1px; }
@@ -1934,11 +1957,15 @@
     justify-content: center;
 }
 
-/* Shop Container Card */
+/* 
+   Requirement 1: Widen Shop Card
+   Increased max-width from 600px to 950px.
+   Width set to 96% to leave a safe margin from screen edges.
+*/
 .cte-shop-card {
     background-color: var(--cte-shop-bg-card);
-    width: 100%;
-    max-width: 600px;
+    width: 96%;           /* Safe margin */
+    max-width: 950px;     /* Increased max width */
     height: 100%;
     padding: 20px 25px;
     border-radius: 4px;
@@ -1947,6 +1974,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    margin: 0 auto;       /* Center the card */
 }
 
 /* Header */
@@ -1975,10 +2003,14 @@
 .cte-shop-res-label { font-size: 14px; font-weight: 600; color: var(--cte-shop-text-secondary); }
 .cte-shop-res-val { font-weight: 700; color: var(--cte-shop-text-primary); font-size: 18px; font-family: 'Noto Serif SC', serif; }
 
-/* Filter Tabs */
+/* 
+   Requirement 3: Mobile Collapsible Shop Menu Styles
+*/
 .cte-shop-tabs {
     display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; 
     padding-bottom: 5px; flex-shrink: 0;
+    /* Transition for expanding (optional, but good for UX) */
+    transition: all 0.3s ease;
 }
 .cte-shop-tab-btn {
     background: transparent; border: 1px solid var(--cte-shop-line-color);
@@ -1991,6 +2023,57 @@
     background: var(--cte-shop-text-primary); color: #fff; border-color: var(--cte-shop-text-primary);
 }
 .cte-shop-tab-btn:hover:not(.active) { border-color: var(--cte-shop-text-secondary); background-color: #f0f0f0; }
+
+/* Toggle Button Styling */
+.cte-shop-tab-toggle {
+    background: #eee;
+    color: var(--cte-shop-text-secondary);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    display: none; /* Hidden by default on desktop */
+}
+
+/* 
+   Mobile Specific Logic for Shop Tabs (Requirement 3)
+   Assume mobile break point at 768px (standard tablet/mobile width) 
+*/
+@media screen and (max-width: 768px) {
+    /* 
+       Collapsed State (Default on mobile):
+       Hide all buttons EXCEPT:
+       1. The "All" button (usually the first one or specific class)
+       2. The "Toggle Down" button
+    */
+    .cte-shop-tabs:not(.cte-shop-mobile-expanded) .cte-shop-tab-btn:not([data-key="all"]) {
+        display: none;
+    }
+
+    .cte-shop-tabs:not(.cte-shop-mobile-expanded) .cte-shop-toggle-down {
+        display: inline-block; /* Show Down Arrow */
+    }
+
+    .cte-shop-tabs:not(.cte-shop-mobile-expanded) .cte-shop-toggle-up {
+        display: none; /* Hide Up Arrow in collapsed state */
+    }
+
+    /*
+       Expanded State:
+       Show all category buttons.
+       Hide "Toggle Down".
+       Show "Toggle Up".
+    */
+    .cte-shop-tabs.cte-shop-mobile-expanded .cte-shop-tab-btn {
+        display: inline-block;
+    }
+
+    .cte-shop-tabs.cte-shop-mobile-expanded .cte-shop-toggle-down {
+        display: none; /* Hide Down Arrow in expanded state */
+    }
+
+    .cte-shop-tabs.cte-shop-mobile-expanded .cte-shop-toggle-up {
+        display: inline-block; /* Show Up Arrow */
+    }
+}
 
 /* Shop List */
 .cte-shop-list {
