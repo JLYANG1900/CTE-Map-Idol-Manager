@@ -650,6 +650,7 @@
         currentStep: 1, // 1: Buyer, 2: Beneficiary
         selectedBuyer: null,
         selectedBeneficiary: null,
+        isMenuExpanded: false, // For mobile menu toggle state
         
         CATEGORY_CONFIG: {
             'marketing': { label: 'MARKETING', icon: 'fa-bullhorn', slug: 'marketing' },
@@ -748,18 +749,9 @@
                 });
             }
 
-            // Tabs HTML
-            const tabs = [
-                {k:'all', l:'All'}, {k:'marketing', l:'营销 PR'}, {k:'training', l:'课程 Edu'}, 
-                {k:'staff', l:'团队 Staff'}, {k:'fan', l:'粉丝 Fan'}, {k:'travel', l:'旅游 Travel'}, 
-                {k:'invest', l:'投资 Invest'}, {k:'vehicle', l:'载具 Auto'}, {k:'fashion', l:'时尚 Fashion'}, 
-                {k:'gear', l:'设备 Gear'}, {k:'living', l:'家居 Home'}, {k:'food', l:'饮食 Food'}, 
-                {k:'gift', l:'礼物 Gift'}
-            ];
-            
-            const tabsHtml = tabs.map((t, idx) => 
-                `<button class="cte-shop-tab-btn ${idx===0?'active':''}" onclick="window.CTEIdolManager.Shop.filter('${t.k}', this)">${t.l}</button>`
-            ).join('');
+            // Build dynamic tabs with toggle logic for mobile
+            // Use helper to construct tab HTML string
+            const tabsHtml = this.generateTabsHTML();
 
             const html = `
                 <div class="cte-shop-scope cte-agency-container">
@@ -784,7 +776,11 @@
                             </div>
                         </div>
 
-                        <div class="cte-shop-tabs">
+                        <!-- 
+                           Requirement 3: Tab Container with Toggle Class Logic
+                           Checks this.isMenuExpanded to set initial class if re-rendered
+                        -->
+                        <div class="cte-shop-tabs ${this.isMenuExpanded ? 'cte-shop-mobile-expanded' : ''}" id="cte-shop-tabs-container">
                             ${tabsHtml}
                         </div>
 
@@ -837,6 +833,49 @@
             container.innerHTML = html;
         },
 
+        // Helper to generate the tab HTML structure with mobile toggle buttons
+        generateTabsHTML: function() {
+            const tabs = [
+                {k:'all', l:'All'}, {k:'marketing', l:'营销 PR'}, {k:'training', l:'课程 Edu'}, 
+                {k:'staff', l:'团队 Staff'}, {k:'fan', l:'粉丝 Fan'}, {k:'travel', l:'旅游 Travel'}, 
+                {k:'invest', l:'投资 Invest'}, {k:'vehicle', l:'载具 Auto'}, {k:'fashion', l:'时尚 Fashion'}, 
+                {k:'gear', l:'设备 Gear'}, {k:'living', l:'家居 Home'}, {k:'food', l:'饮食 Food'}, 
+                {k:'gift', l:'礼物 Gift'}
+            ];
+
+            let html = '';
+            
+            // Render "All" Button (Always First)
+            html += `<button class="cte-shop-tab-btn active" data-key="${tabs[0].k}" onclick="window.CTEIdolManager.Shop.filter('${tabs[0].k}', this)">${tabs[0].l}</button>`;
+
+            // Render Toggle Down Button (Visible on Mobile Collapsed via CSS)
+            // onclick toggles the class on parent container
+            html += `<button class="cte-shop-tab-btn cte-shop-tab-toggle cte-shop-toggle-down" onclick="window.CTEIdolManager.Shop.toggleMenu()">▼</button>`;
+
+            // Render rest of the buttons
+            for (let i = 1; i < tabs.length; i++) {
+                html += `<button class="cte-shop-tab-btn" data-key="${tabs[i].k}" onclick="window.CTEIdolManager.Shop.filter('${tabs[i].k}', this)">${tabs[i].l}</button>`;
+            }
+
+            // Render Toggle Up Button (Visible on Mobile Expanded via CSS, at the very end)
+            html += `<button class="cte-shop-tab-btn cte-shop-tab-toggle cte-shop-toggle-up" onclick="window.CTEIdolManager.Shop.toggleMenu()">▲</button>`;
+
+            return html;
+        },
+
+        // Toggle logic for mobile menu
+        toggleMenu: function() {
+            this.isMenuExpanded = !this.isMenuExpanded;
+            const container = document.getElementById('cte-shop-tabs-container');
+            if (container) {
+                if (this.isMenuExpanded) {
+                    container.classList.add('cte-shop-mobile-expanded');
+                } else {
+                    container.classList.remove('cte-shop-mobile-expanded');
+                }
+            }
+        },
+
         createItemHTML: function(item) {
             return `
                 <div class="cte-shop-item" data-category="${item.categorySlug}" id="${item.id}">
@@ -860,10 +899,12 @@
         },
 
         filter: function(category, btnElement) {
+            // Update active state
             const buttons = document.querySelectorAll('.cte-shop-tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
+            if(btnElement) btnElement.classList.add('active');
 
+            // Do the filtering
             const items = document.querySelectorAll('.cte-shop-item');
             items.forEach(item => {
                 if (category === 'all' || item.dataset.category === category) {
@@ -872,6 +913,12 @@
                     item.classList.add('hidden');
                 }
             });
+
+            // On mobile, if a category is selected (and it's not All), user might want to see the list.
+            // But usually we keep the menu expanded or auto-collapse? 
+            // The prompt says "Clicking Up Arrow collapses it". So selecting a category shouldn't necessarily collapse it automatically,
+            // but for better UX on small screens, we might want to collapse. 
+            // However, staying strict to requirements: only Up Arrow collapses.
         },
 
         openBuyModal: function(itemId) {
@@ -2222,7 +2269,3 @@
     };
 
 })();
-
-
-
-
