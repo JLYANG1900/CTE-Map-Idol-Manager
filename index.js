@@ -913,12 +913,6 @@
                     item.classList.add('hidden');
                 }
             });
-
-            // On mobile, if a category is selected (and it's not All), user might want to see the list.
-            // But usually we keep the menu expanded or auto-collapse? 
-            // The prompt says "Clicking Up Arrow collapses it". So selecting a category shouldn't necessarily collapse it automatically,
-            // but for better UX on small screens, we might want to collapse. 
-            // However, staying strict to requirements: only Up Arrow collapses.
         },
 
         openBuyModal: function(itemId) {
@@ -1035,6 +1029,175 @@
 
             this.closeModal();
             // Optional: Switch back to dashboard or update visual state handled by AI response
+        }
+    };
+
+    // ==========================================
+    // [NEW] 4.0 每日快报模块 (News Manager)
+    // ==========================================
+    window.CTEIdolManager.News = {
+        getNewsContent: function() {
+            let context = stContext;
+            if (!context && window.SillyTavern) context = window.SillyTavern.getContext();
+            if (!context || !context.chat) return null;
+
+            for (let i = context.chat.length - 1; i >= 0; i--) {
+                const msg = context.chat[i].mes || "";
+                const match = msg.match(/<news>([\s\S]*?)<\/news>/i);
+                if (match) return match[1].trim();
+            }
+            return null;
+        },
+
+        parseNews: function(text) {
+            const items = [];
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                // Match [Type|Rank|Title|Source|Summary|Impact]
+                if (line.startsWith('[') && line.endsWith(']')) {
+                    const content = line.substring(1, line.length - 1);
+                    // Split by full-width or half-width pipe
+                    const parts = content.split(/\||｜/).map(s => s.trim());
+                    if (parts.length >= 6) {
+                        items.push({
+                            type: parts[0],
+                            rank: parts[1],
+                            title: parts[2],
+                            source: parts[3],
+                            summary: parts[4],
+                            impact: parts[5]
+                        });
+                    }
+                }
+            });
+            return items;
+        },
+
+        renderView: function(container) {
+            const raw = this.getNewsContent();
+            let items = [];
+            if (raw) items = this.parseNews(raw);
+
+            // Logic to separate Headline, Trending, and Others
+            let headline = items.find(i => i.type.includes('头条') || i.type.toLowerCase().includes('headline'));
+            if (!headline && items.length > 0) headline = items[0];
+
+            const trending = items.filter(i => (i.type.includes('热搜') || i.type.toLowerCase().includes('trending')) && i !== headline);
+            const others = items.filter(i => i !== headline && !trending.includes(i));
+
+            // Generate Headline HTML
+            const headlineHtml = headline ? `
+                <div class="headline-card">
+                    <span class="hl-tag">${headline.type} / ${headline.rank}</span>
+                    <div class="hl-title">${headline.title}</div>
+                    <div class="hl-meta">
+                        <span><i class="fa-solid fa-bullhorn"></i> ${headline.source}</span>
+                        <span><i class="fa-regular fa-clock"></i> TODAY</span>
+                    </div>
+                    <div class="hl-summary">${headline.summary}</div>
+                    <div class="impact-box">
+                        <i class="fa-solid fa-circle-exclamation impact-icon"></i>
+                        <span class="impact-text">IMPACT: ${headline.impact}</span>
+                    </div>
+                </div>` : '<div style="padding:20px; text-align:center; color:#888;">暂无头条新闻 / NO HEADLINES</div>';
+
+            // Generate Trending HTML
+            let trendingHtml = '';
+            trending.forEach((item, idx) => {
+                const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : 'rank-3');
+                let tagClass = 'tag-new';
+                if (item.rank.includes('爆') || item.rank.includes('HOT')) tagClass = 'tag-hot';
+                
+                trendingHtml += `
+                    <div class="trending-item">
+                        <div class="rank-num ${rankClass}">${idx + 1}</div>
+                        <div class="trend-content">
+                            <span class="trend-title">${item.title}</span>
+                            <div class="trend-meta">
+                                <span class="trend-tag ${tagClass}">${item.rank}</span>
+                                <span>${item.source}</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            // Generate Other Brief Cards
+            let othersHtml = '';
+            others.forEach(item => {
+                let cardClass = '';
+                if (item.type.includes('竞品') || item.type.includes('Rivalry')) cardClass = 'rivalry';
+                
+                othersHtml += `
+                    <div class="brief-card ${cardClass}">
+                        <div class="brief-header">
+                            <span class="brief-type">${item.type}</span>
+                            <span class="brief-source">${item.source}</span>
+                        </div>
+                        <div class="brief-title">${item.title}</div>
+                        <div class="brief-text">${item.summary}</div>
+                         ${item.impact ? `<div class="impact-box"><i class="fa-solid fa-chess-pawn impact-icon"></i><span class="impact-text">${item.impact}</span></div>` : ''}
+                    </div>`;
+            });
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+
+            const html = `
+                <div class="cte-news-scope">
+                    <div class="archive-card" id="cte-news-main-card">
+                        <header class="header-section">
+                            <div class="header-title">
+                                <h1 title="点击刷新" onclick="window.CTEIdolManager.renderRPGContent('news')">CTE Entertainment Daily</h1>
+                            </div>
+                            <div class="header-meta">
+                                <div>每日快报</div>
+                                <div>DATE: ${dateStr}</div>
+                                <div>SECURITY: INTERNAL</div>
+                            </div>
+                        </header>
+
+                        <div class="sentiment-bar">
+                            <div class="sent-item">
+                                <span class="sent-label">CTE 舆论风向</span>
+                                <span class="sent-value trend-up">POSITIVE ▲ High</span>
+                            </div>
+                            <div class="sent-item">
+                                <span class="sent-label">公关压力指数</span>
+                                <span class="sent-value trend-down">STABLE ▼ Low</span>
+                            </div>
+                            <div class="sent-item">
+                                <span class="sent-label">今日热词 Key Words</span>
+                                <span class="sent-value">#CTE #回归 #新歌</span>
+                            </div>
+                        </div>
+
+                        <div class="news-grid">
+                            <div class="news-main-col">
+                                ${headlineHtml}
+                            </div>
+                            <div class="news-sidebar">
+                                <div class="trending-section">
+                                    <div class="sidebar-header">
+                                        <span><i class="fa-brands fa-weibo" style="color:#e74c3c;margin-right:5px;"></i> Weibo / 实时热搜</span>
+                                        <span style="font-size:9px;color:#999">TOP ${trending.length}</span>
+                                    </div>
+                                    ${trendingHtml}
+                                </div>
+                                ${othersHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="footer-status">
+                            <span>SYSTEM: MONITORING ACTIVE</span>
+                            <span>舆情安全等级: <span style="color:green;font-weight:bold;">SAFE</span></span>
+                            <span>GENERATED BY CTE-AI</span>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
         }
     };
 
@@ -1264,6 +1427,9 @@
                 window.CTEIdolManager.Contracts.renderView(container);
             } else if (viewType === 'shop') {
                 window.CTEIdolManager.Shop.renderView(container);
+            } else if (viewType === 'news') {
+                // [NEW] Render News View
+                window.CTEIdolManager.News.renderView(container);
             } else {
                 // ==========================
                 // Dashboard
@@ -1487,6 +1653,9 @@
             }
             if (viewName === 'heartbeat') {
                 window.CTEIdolManager.Heartbeat.renderGrid();
+            }
+            if (viewName === 'news') {
+                window.CTEIdolManager.renderRPGContent('news');
             }
         } catch (e) {
             console.error("[CTE Idol Map] Error switching view:", e);
@@ -2269,3 +2438,4 @@
     };
 
 })();
+
