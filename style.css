@@ -1330,13 +1330,20 @@
 /* Modal */
 .cte-nf-modal {
     display: none;
-    position: fixed; /* Relative to panel due to transform on panel */
+    /* [修改] 将 fixed 改为 absolute */
+    position: absolute; 
     z-index: 20005;
-    left: 0; top: 0; width: 100%; height: 100%;
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%;
+    /* [保留] 确保背景色和对齐方式不变 */
     background: rgba(0,0,0,0.8);
     justify-content: center;
     align-items: center;
     animation: cteNfModalFade 0.3s;
+    /* [新增] 防止圆角溢出 */
+    border-radius: 8px; 
 }
 
 @keyframes cteNfModalFade { from { opacity: 0; transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
@@ -2664,3 +2671,4 @@
     margin-top: auto; border-top: 2px solid var(--cte-news-text-primary); padding-top: 15px; 
     opacity: 0.6; font-size: 11px; display: flex; justify-content: space-between; font-family: monospace;
 }
+
