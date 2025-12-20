@@ -6,7 +6,6 @@
 <div align="center">
   <img src="https://github.com/user-attachments/assets/4cf43ab0-e653-466e-98de-b2c6a4f7a65a" width="45%" />
   <img src="https://github.com/user-attachments/assets/6ddbcff1-2c9b-4ef9-a123-d63d8b80ffe8" width="45%" />
-  <br>
   <img src="https://github.com/user-attachments/assets/3515e45c-df83-49e5-a80e-aa30b362d371" width="45%" />
   <img src="https://github.com/user-attachments/assets/c2fa12a5-7f44-4dbd-b7da-24f0f14dbd4f" width="45%" />
 </div>
@@ -27,8 +26,8 @@
 <summary><strong>❤️ Heartbeat Interaction (心跳互动)</strong></summary>
 <br>
 <div align="center">
-  <img src="path/to/netflix_home.jpg" width="45%" />
-  <img src="path/to/member_select.jpg" width="45%" />
+  <img src="https://github.com/user-attachments/assets/a1b28798-330d-43d3-acec-8103f04f48ea" width="45%" />
+  <img src="https://github.com/user-attachments/assets/7e39fd01-3f2e-4d82-a835-594c4f329ba4" width="45%" />
 </div>
 </details>
 
