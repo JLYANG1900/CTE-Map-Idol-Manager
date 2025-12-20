@@ -1,4 +1,35 @@
-<img width="1281" height="860" alt="CTE男团6" src="https://github.com/user-attachments/assets/41c61b10-94da-4b39-8ce9-39bfa41057c6" />
+## 📸 Gallery (实机演示)
+
+<details>
+<summary><strong>🗺️ Map & Navigation (地图与导航)</strong></summary>
+<br>
+<div align="center">
+  <img src="<img width="1302" height="862" alt="CTE男团12" src="https://github.com/user-attachments/assets/4cf43ab0-e653-466e-98de-b2c6a4f7a65a" />" width="45%" />
+  <img src="path/to/national_map.jpg" width="45%" />
+  <br>
+  <img src="path/to/location_detail.jpg" width="45%" />
+  <img src="path/to/travel_menu.jpg" width="45%" />
+</div>
+</details>
+
+<details>
+<summary><strong>📊 RPG Dashboard & Agency (经营与事务所)</strong></summary>
+<br>
+<div align="center">
+  <img src="path/to/dashboard.jpg" width="30%" />
+  <img src="path/to/agency_contracts.jpg" width="30%" />
+  <img src="path/to/shop.jpg" width="30%" />
+</div>
+</details>
+
+<details>
+<summary><strong>❤️ Heartbeat Interaction (心跳互动)</strong></summary>
+<br>
+<div align="center">
+  <img src="path/to/netflix_home.jpg" width="45%" />
+  <img src="path/to/member_select.jpg" width="45%" />
+</div>
+</details>
 
 **CTE Map Idol Manager (CTE偶像男团模拟经营)**
 An Immersive Idol Management RPG Extension for SillyTavern. 
