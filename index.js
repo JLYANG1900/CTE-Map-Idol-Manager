@@ -1683,9 +1683,6 @@
                                     ${activeTasksHtml}
                                 </ul>
 
-                                <div class="cte-archive-footer-stamp">
-                                    <div class="cte-archive-barcode"></div>
-                                </div>
                             </div>
                         </div>
 
@@ -2533,6 +2530,7 @@
     };
 
 })();
+
 
 
 
