@@ -1900,11 +1900,7 @@
         $('#cte-idol-close-btn').off('click').on('click', () => $('#cte-idol-map-panel').fadeOut());
 
         if ($.fn.draggable) {
-            $('#cte-idol-map-panel').draggable({ 
-                handle: '#cte-idol-drag-handle',
-                containment: 'window'
-            });
-
+            
             $('#cte-idol-toggle-btn').draggable({
                 containment: 'window', 
                 start: function() { isIconDragging = true; },
@@ -2534,13 +2530,3 @@
     };
 
 })();
-
-
-
-
-
-
-
-
-
-
