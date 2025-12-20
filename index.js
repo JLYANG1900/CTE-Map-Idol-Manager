@@ -180,7 +180,19 @@
 
         closeModal: function() {
             const modal = document.getElementById('cte-nf-modal');
+            const viewContainer = document.getElementById('cte-idol-view-heartbeat');
+
             if (modal) modal.style.display = 'none';
+            
+            // [关键修改 3] 恢复背景滚动
+            if (viewContainer) {
+                viewContainer.style.overflow = ''; // 清空样式，恢复默认
+                // 也可以恢复 top 和 height，虽然不是必须的
+                if (modal) {
+                    modal.style.top = '';
+                    modal.style.height = '';
+                }
+            }
         },
 
         // 确认生成指令
@@ -2548,4 +2560,5 @@
     };
 
 })();
+
 
