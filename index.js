@@ -1348,9 +1348,9 @@
                         </div>
                         
                         <div class="footer-status">
-                            <span>遇到问题了吗？请到Discord寻找答疑</span>
+                            <span>在酒馆输入框中发送"刷新日报"即可更新</span>
                             <span>插件作者: <span style="color:green;font-weight:bold;">1900</span></span>
-                            <span>感谢使用</span>
+                            <span>遇到问题了吗？请到Discord寻找答疑</span>
                         </div>
 
                     </div>
@@ -2530,6 +2530,7 @@
     };
 
 })();
+
 
 
 
