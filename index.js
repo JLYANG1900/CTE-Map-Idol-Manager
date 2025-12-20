@@ -1308,12 +1308,12 @@
                     <div class="archive-card" id="cte-news-main-card">
                         <header class="header-section">
                             <div class="header-title">
-                                <h1 title="点击刷新" onclick="window.CTEIdolManager.renderRPGContent('news')">CTE Entertainment Daily</h1>
+                                <h1 title="在正文中发送 刷新日报 即可更新" onclick="window.CTEIdolManager.renderRPGContent('news')">CTE Entertainment Daily</h1>
                             </div>
                             <div class="header-meta">
                                 <div>每日快报</div>
                                 <div>DATE: ${dateStr}</div>
-                                <div>SECURITY: INTERNAL</div>
+                                <div>内部资讯</div>
                             </div>
                         </header>
 
@@ -2534,3 +2534,4 @@
     };
 
 })();
+
