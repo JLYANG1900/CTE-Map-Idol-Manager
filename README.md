@@ -5,7 +5,7 @@
 <br>
 <div align="center">
   <img src="https://github.com/user-attachments/assets/4cf43ab0-e653-466e-98de-b2c6a4f7a65a" width="45%" />
-  <img src="path/to/national_map.jpg" width="45%" />
+  <img src="https://github.com/user-attachments/assets/6ddbcff1-2c9b-4ef9-a123-d63d8b80ffe8" width="45%" />
   <br>
   <img src="path/to/location_detail.jpg" width="45%" />
   <img src="path/to/travel_menu.jpg" width="45%" />
