@@ -410,7 +410,6 @@
                             </div>
                             <div class="cte-agency-meta">
                                 <div>AVAILABLE: ${count < 10 ? '0' + count : count}</div>
-                                <div>DATE: ${dateStr}</div>
                             </div>
                         </header>
 
@@ -2534,6 +2533,7 @@
     };
 
 })();
+
 
 
 
