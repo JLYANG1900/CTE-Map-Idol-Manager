@@ -117,16 +117,91 @@
     </div>
 </div>
 
-<!-- [新增] Heartbeat 亲密互动视图 -->
-<div id="cte-idol-view-heartbeat" class="cte-idol-view" style="background-color: #FFF0F5;">
-    <div class="cte-idol-hb-container">
-        <div class="cte-idol-hb-header">
-            <h1><i class="fa-solid fa-heart"></i> Special Interactions <i class="fa-solid fa-heart"></i></h1>
-            <p style="color: white; font-size: 12px; margin:0;">与成员进行深度互动的私密空间</p>
+<!-- [REPLACED] Heartbeat (Netflix Style) View Container -->
+<div id="cte-idol-view-heartbeat" class="cte-idol-view cte-nf-container">
+    <!-- NAV -->
+    <nav class="cte-nf-navbar">
+        <div style="display:flex; align-items:center; gap:30px;">
+            <div class="cte-nf-brand-logo">C-LOVE-E</div>
+            <div class="cte-nf-nav-links">
+                <span class="cte-nf-nav-link active">Home</span>
+                <span class="cte-nf-nav-link">Series</span>
+                <span class="cte-nf-nav-link">Films</span>
+                <span class="cte-nf-nav-link">My List</span>
+            </div>
         </div>
-        <div class="cte-idol-hb-content">
-            <div class="cte-idol-hb-grid" id="cte-idol-hb-activity-grid">
-                <!-- JS Generated Activities -->
+        <div>
+            <span class="cte-nf-nav-link" onclick="window.CTEIdolManager.switchView('map')" style="margin-right: 20px; font-weight:bold; cursor:pointer;">EXIT <i class="fa-solid fa-right-from-bracket"></i></span>
+            <div style="display:inline-block; width:30px; height:30px; background:#E50914; border-radius:4px; vertical-align:middle;"></div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="cte-nf-billboard">
+        <div class="cte-nf-billboard-content">
+            <h1 class="cte-nf-billboard-title">The System</h1>
+            <p class="cte-nf-billboard-desc">
+                Choose your protocol. Manage your desires. <br>
+                Exclusive access to structured intimacy.
+            </p>
+            <div class="cte-nf-billboard-buttons">
+                <!-- Smooth scroll to rows -->
+                <button class="cte-nf-btn cte-nf-btn-play" onclick="document.getElementById('cte-nf-content-anchor').scrollIntoView({behavior: 'smooth'})">
+                    <i class="fa-solid fa-play"></i> Play
+                </button>
+                <button class="cte-nf-btn cte-nf-btn-info">
+                    <i class="fa-solid fa-circle-info"></i> More Info
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT ROWS Anchor -->
+    <div id="cte-nf-content-anchor"></div>
+
+    <!-- CONTENT ROWS -->
+    <div class="cte-nf-content-rows">
+        
+        <!-- Row 1 -->
+        <div class="cte-nf-row">
+            <h3 class="cte-nf-row-title">Trending Now</h3>
+            <div class="cte-nf-row-scroller" id="cte-nf-row1">
+                <!-- JS Injected -->
+            </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="cte-nf-row">
+            <h3 class="cte-nf-row-title">Intimate & Private</h3>
+            <div class="cte-nf-row-scroller" id="cte-nf-row2">
+                <!-- JS Injected -->
+            </div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="cte-nf-row">
+            <h3 class="cte-nf-row-title">Exciting & Public</h3>
+            <div class="cte-nf-row-scroller" id="cte-nf-row3">
+                <!-- JS Injected -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL -->
+    <div id="cte-nf-modal" class="cte-nf-modal" onclick="if(event.target === this) window.CTEIdolManager.Heartbeat.closeModal()">
+        <div class="cte-nf-modal-content">
+            <div class="cte-nf-modal-header">
+                <span class="cte-nf-modal-title">Who's watching?</span>
+                <button class="cte-nf-close-btn" onclick="window.CTEIdolManager.Heartbeat.closeModal()">&times;</button>
+            </div>
+            
+            <div class="cte-nf-profile-grid" id="cte-nf-profile-grid">
+                <!-- JS Injected -->
+            </div>
+
+            <div class="cte-nf-modal-footer">
+                <button class="cte-nf-btn cte-nf-btn-play" style="padding: 8px 20px; font-size: 0.9rem;" onclick="window.CTEIdolManager.Heartbeat.confirmAssignment()">Start</button>
             </div>
         </div>
     </div>
@@ -162,21 +237,6 @@
     <div style="text-align:center; margin-top:15px; display:flex; gap:10px; justify-content:center;">
         <button class="cte-idol-btn" onclick="window.CTEIdolManager.proceedToLocationSelection()" style="background:#b38b59; color:#1a1a1a;">📍 选择地点</button>
         <button class="cte-idol-btn" onclick="window.CTEIdolManager.closeAllPopups()" style="border-color:#666; color:#888;">取消</button>
-    </div>
-</div>
-
-<!-- [新增] Heartbeat 专属多选弹窗 -->
-<div id="cte-idol-hb-modal" class="cte-idol-hb-modal">
-    <div class="cte-idol-hb-modal-content">
-        <h2 id="cte-idol-hb-modal-title" style="margin: 0 0 10px 0;">分配成员</h2>
-        <p style="color: #666; font-size: 0.9rem;">请选择要参与互动的偶像（可多选）</p>
-        <div class="cte-idol-hb-member-list" id="cte-idol-hb-member-list">
-            <!-- JS Generated Members -->
-        </div>
-        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-            <button class="cte-idol-hb-assign-button" id="cte-idol-hb-confirm-btn" onclick="window.CTEIdolManager.Heartbeat.confirmAssignment()">确认安排</button>
-            <button class="cte-idol-hb-close-button" onclick="window.CTEIdolManager.Heartbeat.closeModal()">取消</button>
-        </div>
     </div>
 </div>
 
