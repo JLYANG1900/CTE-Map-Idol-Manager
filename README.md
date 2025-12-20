@@ -1,7 +1,6 @@
 <img width="1281" height="860" alt="CTE男团6" src="https://github.com/user-attachments/assets/41c61b10-94da-4b39-8ce9-39bfa41057c6" />
 
-**CTE Map Idol Ma![Uploading CTE男团6.png…]()
-nager (CTE偶像男团模拟经营)**
+**CTE Map Idol Manager (CTE偶像男团模拟经营)**
 An Immersive Idol Management RPG Extension for SillyTavern. 
 专为 SillyTavern 打造的沉浸式偶像团体经营 RPG 扩展。
 
