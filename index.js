@@ -1107,7 +1107,11 @@
         },
 
         closeModal: function() {
-            document.getElementById('cte-shop-modal').classList.remove('active');
+            const shopModal = document.getElementById('cte-shop-modal');
+            if (shopModal) {
+                shopModal.classList.remove('active');
+            }
+    
             this.pendingItem = null;
             this.selectedBuyer = null;
             this.selectedBeneficiary = null;
@@ -2530,6 +2534,7 @@
     };
 
 })();
+
 
 
 
