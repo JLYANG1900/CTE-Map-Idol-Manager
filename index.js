@@ -1300,8 +1300,8 @@
                     </div>`;
             });
 
-            const today = new Date();
-            const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+            const storyDate = window.CTEIdolManager.Contracts.getStoryDate(); 
+            const dateStr = `${storyDate.getFullYear()}年${storyDate.getMonth()+1}月${storyDate.getDate()}日`;
 
             const html = `
                 <div class="cte-news-scope">
@@ -2534,4 +2534,5 @@
     };
 
 })();
+
 
