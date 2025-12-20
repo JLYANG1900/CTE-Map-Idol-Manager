@@ -41,17 +41,17 @@
             { name: "深夜停车场车震", desc: "在狭小的密闭空间里，你只能跨坐在他身上。", icon: "fa-car-side" },
             { name: "落地窗前", desc: "赤身裸体压在窗前看风景，好像让窗外的景色格外美。", icon: "fa-city" },
             { name: "电竞桌下口交", desc: "他的手和眼都必须继续游戏哦。", icon: "fa-gamepad" },
-            { name: "校园活动", desc: "和他一起穿上谌绪的高中校服吧！", icon: "fa-graduation-cap" },
+            { name: "校园活动", desc: "做爱的时候，和他一起穿上谌绪的高中校服吧！", icon: "fa-graduation-cap" },
             { name: "健身房的汗水游戏", desc: "好像有人做卧推时没有穿内裤呢……", icon: "fa-dumbbell" },
             { name: "按摩室SPA混浴", desc: "在氤氲的热气中，肌肤相亲的触感格外清晰。", icon: "fa-hot-tub-person" },
             { name: "私人影院", desc: "昏暗的灯光下，屏幕上的画面远不如身边的你诱人。", icon: "fa-film" },
             { name: "试衣间的秘密", desc: "门帘之外是喧嚣的人群，门帘之内是压抑的喘息。", icon: "fa-shirt" },
-            { name: "豪华游艇", desc: "在无边无际的大海上，没有人能听见你的求救。", icon: "fa-ship" },
+            { name: "豪华游艇", desc: "在无边无际的大海上，没有人能听见你的喘息。", icon: "fa-ship" },
             { name: "图书馆角落", desc: "要是被图书管理员听见会怎么样呢？", icon: "fa-book-open" },
             { name: "摩天轮顶点", desc: "传说在最高点结合的恋人，会永远在一起。", icon: "fa-dharmachakra" },
             { name: "钢琴上的奏鸣曲", desc: "凌乱的音符，用身体谱写出只属于今夜的乐章。", icon: "fa-music" },
             { name: "露营帐篷", desc: "森林的虫鸣鸟叫，都成为了这场欢爱的伴奏。", icon: "fa-campground" },
-            { name: "天台的夜风", desc: "城市的霓虹灯在脚下闪烁，我们在风中彻底沉沦。", icon: "fa-wind" },
+            { name: "天台的夜风", desc: "城市的霓虹灯在脚下闪烁，你们在风中彻底沉沦。", icon: "fa-wind" },
             { name: "酒吧后巷", desc: "酒精麻痹了神经，却放大了感官的刺激。", icon: "fa-wine-glass-empty" },
             { name: "镜中双面", desc: "强迫你在镜前看着自己沉沦的模样，羞耻感爆棚。", icon: "fa-clone" },
             { name: "丝巾蒙眼", desc: "剥夺了视觉后，每一次触碰都变成了未知的战栗。", icon: "fa-eye-slash" },
@@ -67,10 +67,10 @@
             { name: "红绳束缚", desc: "错综复杂的红绳将对方悬在半空，像一只待宰的羔羊。", icon: "fa-link" },
             { name: "泳池派对", desc: "水波荡漾掩盖了水下的动作，清凉与燥热的碰撞。", icon: "fa-water" },
             { name: "私人诊所", desc: "“病人”需要接受全方位的身体检查，尤其是那里。", icon: "fa-user-doctor" },
-            { name: "引擎盖热度", desc: "刚刚熄火的引擎盖还发烫，正如现在的我们。", icon: "fa-fire" },
+            { name: "引擎盖热度", desc: "刚刚熄火的引擎盖还发烫，正如现在的你们。", icon: "fa-fire" },
             { name: "你的礼物", desc: "除了红色的丝带，你身上一丝不挂，等他拆封。", icon: "fa-gift" },
             { name: "早安咬", desc: "在晨光中用口舌唤醒他，美好的一天从这里开始。", icon: "fa-sun" },
-            { name: "电车痴汉", desc: "拥挤的车厢里，没人知道我们紧贴的身体间发生了什么。", icon: "fa-train-subway" },
+            { name: "电车痴汉", desc: "拥挤的车厢里，没人知道你们紧贴的身体间发生了什么。", icon: "fa-train-subway" },
             { name: "电梯惊魂", desc: "在这几十秒的上升时间里，争分夺秒地索取。", icon: "fa-elevator" },
             { name: "野外丛林", desc: "远离文明的束缚，回归最原始的野性本能，天为被地为床。", icon: "fa-tree" }
         ],
@@ -2534,5 +2534,6 @@
     };
 
 })();
+
 
 
