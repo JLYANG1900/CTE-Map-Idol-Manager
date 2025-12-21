@@ -1848,7 +1848,7 @@
         console.log("[CTE Idol Map] Initializing Extension...");
 
         document.querySelectorAll('#cte-idol-map-panel, #cte-idol-toggle-btn').forEach(el => el.remove());
-        document.querySelectorAll('link[href*="CTE_Map/style.css"]').forEach(el => el.remove());
+        document.querySelectorAll('link[href*="${extensionName}/style.css"]').forEach(el => el.remove());
 
         const timestamp = Date.now();
         const link = document.createElement('link');
@@ -2560,6 +2560,7 @@
     };
 
 })();
+
 
 
 
