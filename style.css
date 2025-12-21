@@ -854,6 +854,47 @@
     }
 }
 
+/* ========================================== */
+/* === [修复] Memo 弹窗移动端适配 === */
+/* ========================================== */
+
+@media screen and (max-width: 768px) {
+    /* 1. 调整遮罩层定位，防止随内容滚动 */
+    .cte-memo-modal-overlay {
+        position: fixed; /* 在 transformed 父元素中表现为绝对定位，且覆盖可视区 */
+        z-index: 20020;  /* 提高层级，确保覆盖其他内容 */
+    }
+
+    /* 2. 调整弹窗盒子宽度 */
+    .cte-memo-modal-box {
+        width: 92%;          /* 移动端占用屏幕 92% 宽度 */
+        max-width: none;     /* 移除 360px 的桌面端限制 */
+        padding: 15px;       /* 稍微减小内边距，留出更多内容空间 */
+        box-sizing: border-box;
+    }
+
+    /* 3. 优化输入框体验 */
+    .cte-memo-modal-textarea {
+        font-size: 14px;     /* 增大字号，防止 iOS 自动缩放 */
+        height: 120px;       /* 稍微增高输入区域 */
+    }
+
+    /* 4. 优化按钮点击区域 */
+    .cte-memo-modal-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        flex: 1;             /* 按钮平分宽度，方便手指点击 */
+        text-align: center;
+    }
+    
+    .cte-memo-modal-actions {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+    }
+}
+
 @media screen and (max-width: 480px) {
     .cte-idol-character-portrait {
         width: 100px;
@@ -2671,4 +2712,5 @@
     margin-top: auto; border-top: 2px solid var(--cte-news-text-primary); padding-top: 15px; 
     opacity: 0.6; font-size: 11px; display: flex; justify-content: space-between; font-family: monospace;
 }
+
 
